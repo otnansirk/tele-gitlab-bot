@@ -1,16 +1,16 @@
 import gitlab
 import os
 
-def callback_gitlab(request):
+def callback_gitlab(data: dict):
     url = os.getenv("GITLAB_BASEURL")
     token = os.getenv("GITLAB_TOKEN")
-    projectID = os.getenv("GITLAB_PROJECT_ID")
+    project_id = data.get('project', {}).get('id')
 
     gl = gitlab.Gitlab(url=url, private_token=token)
-    project = gl.projects.get(projectID)
+    project = gl.projects.get(project_id)
 
     return {
-        "data": request,
+        "data": project.to_json(),
         "meta": {
             "code": "ok",
             "message": "OK"
