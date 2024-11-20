@@ -1,0 +1,34 @@
+{
+    "members": [
+        {
+            "labels": ["closed"],
+            "role": "dev_lead",
+            "gitlab_username": "kris",
+            "telegram_username": "kris"
+        },
+        {
+            "labels": ["Re Open"],
+            "role": "dev",
+            "gitlab_username": "kris",
+            "telegram_username": "kris"
+        },
+        {
+            "labels": ["Dev Done"],
+            "role": "tester_lead",
+            "gitlab_username": "kris",
+            "telegram_username": "kris"
+        },
+        {
+            "labels": ["Dev Done", "In Progress", "Internal Testing"],
+            "role": "pm_lead",
+            "gitlab_username": "kris",
+            "telegram_username": "kris"
+        },
+        {
+            "labels": ["closed"],
+            "role": "lord",
+            "gitlab_username": "kris",
+            "telegram_username": "kris"
+        }
+    ]
+}
