@@ -1,10 +1,8 @@
 import gitlab
 import os
 import json
+from services import helper
 
-def get_config_project(id: str):
-    file = open(f"configs/projects/{id}.json")
-    return json.load(file)
 
 def callback_gitlab(data: dict):
     url         = os.getenv("GITLAB_BASEURL")
@@ -16,7 +14,7 @@ def callback_gitlab(data: dict):
     current_state = data.get('object_attributes', {}).get('state')
     current_assignee = data.get('assignees', [])
 
-    config = get_config_project(project_id)
+    config = helper.get_config_project(project_id)
     
     gl = gitlab.Gitlab(url=url, private_token=token)
     project = gl.projects.get(project_id)
@@ -32,9 +30,6 @@ def callback_gitlab(data: dict):
     ]
 
     gitlab_usernames = [item["gitlab_username"] for item in to_members]
-    # telegram_usernames = [item["telegram_username"] for item in to_members]
-
-
 
     return {
         "to_members": assignee_handler(
@@ -47,7 +42,7 @@ def callback_gitlab(data: dict):
             current_state=current_state,
             author= author
         ),
-        "defined_members": get_config_project(project_id),
+        "defined_members": helper.get_config_project(project_id),
         "members": all_members,
         "data": project.to_json(),
         "meta": {
