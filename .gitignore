@@ -2,4 +2,6 @@
 .env
 configs/projects/*.json
 .chatids
-__pycache__/*
+
+__pycache__/
+*.py[cod]
