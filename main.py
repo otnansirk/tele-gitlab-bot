@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
-from services.gitlab_handler import updater
+from services import gitlab_handler
 from fastapi.responses import JSONResponse
 from services import telegram_handler
 from dotenv import load_dotenv

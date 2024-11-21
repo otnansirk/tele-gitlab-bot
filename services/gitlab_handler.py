@@ -86,6 +86,7 @@ def assignee_handler(**params):
         # Remove trigered
         issue = closed(
             issue=issue, 
+            author=author, 
             current_assignee_ids=current_assignee_ids, 
             config=config, 
             all_members=all_members
@@ -114,7 +115,7 @@ def assignee_handler(**params):
     return current_assignee_ids + assign_to_ids
 
 
-def closed(issue, current_assignee_ids, config, all_members):
+def closed(issue, current_assignee_ids, config, all_members, author):
         assignee_ids = [item for item in current_assignee_ids if item != author["id"]]
 
         members = [member["gitlab_username"] for member in config["members"] if member["role"] == "dev_lead"]
