@@ -1,9 +1,8 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
+from services.gitlab_handler import updater
 from fastapi.responses import JSONResponse
-from services.callback_gitlab import callback_gitlab
-from dotenv import load_dotenv
-
 from services import telegram_handler
+from dotenv import load_dotenv
 
 
 app = FastAPI()
@@ -16,11 +15,12 @@ async def startup_event():
     """Set Telegram bot webhook."""
     await telegram_handler.set_webhook()
 
+
 @callback_route.post("/")
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
-        return callback_gitlab(data)
+        return gitlab_handler.updater(data)
     except Exception as e:
         print(e)
         return JSONResponse(

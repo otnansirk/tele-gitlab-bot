@@ -32,6 +32,7 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
 
         config = helper.get_config_project(project_id)
         telegram_usernames = [item["telegram_username"] for item in config["members"]]
+        
         if username in telegram_usernames:
             directory = f"{CHAT_ID_PATH}/{project_id}"
 
