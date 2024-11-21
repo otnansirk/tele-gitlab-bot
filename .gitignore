@@ -2,3 +2,4 @@
 .env
 configs/projects/*.json
 .chatids
+__pycache__/*
