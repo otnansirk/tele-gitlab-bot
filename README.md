@@ -11,3 +11,22 @@
 4. Rename `.env.example` to `.env` and adjust to yous need. 
 5. Rename `configs/projects/<Gitlab_Project_ID>.json.example` to `configs/projects/<Gitlab_Project_ID>.json`. and adjust  <Gitlab_Project_ID> to your gitlab Project_ID. 
 6. Run `fastapi dev main.py`
+
+
+Flow Notif telegram : 
+
+1. Issue -> Dev Done 
+            -> notify : tester_lead -> assign to team -> notify : tester_team_base_on_assignee
+
+2. Issue -> Internal Testing
+            -> Remove label : Re Open
+
+3. Issue -> Internal Testing -> Open (state)
+                                -> Add label : Re Open
+                                -> Notify : dev_team_base_on_assignee
+
+4. Issue -> Internal Testing -> Close (state)
+                                -> Remove label : Re Open
+                                -> Notify : dev_team_lead
+
+
