@@ -2,6 +2,7 @@
 
 ## Warning !!!
 1. Do not change the data structure in the file `configs/projects/<Gitlab_Project_ID>.json`
+   Only value with `< >` can be changed.
 
 ## Usage
 1. Create virtual env `python3 -m venv venv`

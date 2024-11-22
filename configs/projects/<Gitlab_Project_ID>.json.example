@@ -1,34 +1,35 @@
 {
+    "project_id": "<PROJECT_ID>",
     "members": [
         {
             "labels": ["closed"],
             "role": "dev_lead",
-            "gitlab_username": "kris",
-            "telegram_username": "kris"
+            "gitlab_username": "<USERNAME>",
+            "telegram_username": "<USERNAME>"
         },
         {
             "labels": ["Re Open"],
             "role": "dev",
-            "gitlab_username": "kris",
-            "telegram_username": "kris"
+            "gitlab_username": "<USERNAME>",
+            "telegram_username": "<USERNAME>"
         },
         {
             "labels": ["Dev Done"],
             "role": "tester_lead",
-            "gitlab_username": "kris",
-            "telegram_username": "kris"
+            "gitlab_username": "<USERNAME>",
+            "telegram_username": "<USERNAME>"
         },
         {
             "labels": ["Dev Done", "In Progress", "Internal Testing"],
             "role": "pm_lead",
-            "gitlab_username": "kris",
-            "telegram_username": "kris"
+            "gitlab_username": "<USERNAME>",
+            "telegram_username": "<USERNAME>"
         },
         {
             "labels": ["closed"],
             "role": "lord",
-            "gitlab_username": "kris",
-            "telegram_username": "kris"
+            "gitlab_username": "<USERNAME>",
+            "telegram_username": "<USERNAME>"
         }
     ]
 }
