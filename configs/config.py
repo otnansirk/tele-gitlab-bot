@@ -18,3 +18,8 @@ def get_labels(project_id: str):
     config = get(project_id)
     data = config.get("notify_to", {})
     return [key for key, value in data.items()]
+
+def get_gitlab_username_by_role(project_id: str, role: str):
+    config = get(project_id)
+    return config.get("gitlab_role_username_members", {}).get(role, [])
+
