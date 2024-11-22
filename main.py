@@ -20,7 +20,7 @@ async def startup_event():
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
-        await gitlab_handler.updater(data)
+        return await gitlab_handler.updater(data)
     except Exception as e:
         print(e)
         return JSONResponse(
