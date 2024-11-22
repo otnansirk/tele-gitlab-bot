@@ -49,3 +49,14 @@ async def dev_done(notify_to, issue):
         text=f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Segera TEST ya \n\n---\n {title} "
         await telegram_handler.send_text(chat.get("id"), text=text)
 
+    for assignee in issue.assignees:
+        username = assignee.get("username", "")
+
+        registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+        if username in registered_gitlab_usernames:
+            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+            tele_user = chat.get("username")
+
+            text=f"Hi {tele_user}, Selamat dapat tugas baru, [Task #{issue_id}]({issue_url}). Segera TEST ya \n\n---\n {title} "
+            await telegram_handler.send_text(chat.get("id"), text=text)
+
