@@ -3,6 +3,8 @@ import os
 import json
 from services import helper
 from services import telegram_handler
+from telegram.constants import ParseMode
+
 
 async def updater(data: dict):
     url         = os.getenv("GITLAB_BASEURL")
@@ -108,20 +110,34 @@ async def closed(issue, current_assignee_ids, config, all_members, author):
     ]
     issue.assignee_ids = assignee_ids + dev_lead_ids
     issue.labels = []
+    issue_id = issue.iid
+    issue_url = issue.web_url
 
     for username in gitlab_users:
         chat = helper.get_telegram_chat(config["project_id"], username)
         tele_user = chat.get("username")
-        await telegram_handler.bot.send_message(chat.get("id"), f"Hi @{tele_user}, Ada task yang diclose dengan ID 123. Segra lakukan merge ya")
+        await telegram_handler.bot.send_message(
+            chat_id=chat.get("id"),
+            parse_mode=ParseMode.MARKDOWN,
+            text=f"Hi @{tele_user}, Ada task yang sudah *CLOSED* dengan ID [#{issue_id}]({issue_url}). Segera lakukan merge ya"
+        )
 
     return issue
 
 
 async def re_open(issue, author, current_assignee_ids, config):
-    current_assignee_ids.remove(author["id"])
-    telegram_users   = [member for member in config["members"] if member["role"] == "dev_lead"]
+    issue.assignee_ids = [i for i in current_assignee_ids if i != author["id"]]
+    issue_id = issue.iid
+    issue_url = issue.web_url
 
-    issue.assignee_ids = current_assignee_ids
+    for assignee in issue.assignees:
+        chat = helper.get_telegram_chat(config["project_id"], assignee.get("username"))
+        tele_user = chat.get("username")
+        await telegram_handler.bot.send_message(
+            chat_id=chat.get("id"),
+            parse_mode=ParseMode.MARKDOWN,
+            text=f"Hi @{tele_user}, Ada task yang di *RE-OPEN* dengan ID [#{issue_id}]({issue_url}). Segera cek ya"
+        )
 
     return issue
 
@@ -133,7 +149,18 @@ async def dev_done(issue, author, config, current_assignee_ids, all_members):
         if member["username"] in members
     ]
 
-    current_assignee_ids.remove(author["id"])
+    current_assignee_ids = [i for i in current_assignee_ids if i != author["id"]]
     issue.assignee_ids = current_assignee_ids + tester_lead_ids
+    issue_id = issue.iid
+    issue_url = issue.web_url
+
+    for member in members:
+        chat = helper.get_telegram_chat(config["project_id"], member)
+        tele_user = chat.get("username")
+        await telegram_handler.bot.send_message(
+            chat_id=chat.get("id"),
+            parse_mode=ParseMode.MARKDOWN,
+            text=f"Hi @{tele_user}, Ada task yang sudah *DEV-DONE* dengan ID [#{issue_id}]({issue_url}). Segera TEST ya"
+        )
 
     return issue
