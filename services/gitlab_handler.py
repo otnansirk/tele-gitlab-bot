@@ -4,6 +4,7 @@ import json
 from services import helper
 from services import telegram_handler
 from telegram.constants import ParseMode
+from configs import config
 
 
 async def updater(data: dict):
@@ -11,156 +12,40 @@ async def updater(data: dict):
     token       = os.getenv("GITLAB_TOKEN")
     project_id  = data.get('project', {}).get('id')
     issue_id    = data.get('object_attributes', {}).get('iid')
-    labels      = data.get('object_attributes', {}).get('labels')
-    author      = data.get('user', {})
-    current_state = data.get('object_attributes', {}).get('state')
-    current_assignee = data.get('assignees', [])
 
-    config = helper.get_config_project(project_id)
-    
     gl = gitlab.Gitlab(url=url, private_token=token)
     project = gl.projects.get(project_id)
     issue = project.issues.get(issue_id)
+    
+    if issue.type == "ISSUE":
+        await issue_handler(
+            issue=issue
+        )
 
-    all_members = project.members_all.list(get_all=True)
-    all_members = [member.__dict__['_attrs'] for member in all_members]
-
-    current_label_titles = [item["title"] for item in labels]
-    to_members = [
-        member for member in config["members"] 
-        if any(label in current_label_titles for label in member["labels"])
-    ]
-
-    gitlab_usernames = [item["gitlab_username"] for item in to_members]
-    # telegram_usernames = [item["telegram_username"] for item in config["members"]]
-
-    await assignee_handler(
-        config=config, 
-        gitlab_usernames=gitlab_usernames, 
-        all_members=all_members, 
-        issue=issue,
-        current_assignee=current_assignee,
-        current_label_titles=current_label_titles,
-        current_state=current_state,
-        author= author
-    )
+    return json.loads(issue.to_json())
 
 
 # assignee member to issue
-async def assignee_handler(**params):
+async def issue_handler(**params):
 
-    config           = params.get("config")
-    gitlab_usernames = params.get("gitlab_usernames")
-    all_members      = params.get("all_members")
-    issue            = params.get("issue")
-    author           = params.get("author")
-    current_assignee = params.get("current_assignee")
-    current_state    = params.get("current_state")
-    current_label_titles = params.get("current_label_titles")
+    issue  = params.get("issue")
+    project_id=issue.project_id
 
-    assign_to = [
-        member for member in all_members
-        if member["username"] in gitlab_usernames
-    ]
-    assign_to_ids = [assign["id"] for assign in assign_to]
-    current_assignee_ids = [assign["id"] for assign in current_assignee]
-
-    if current_state == "closed":
-        # Remove trigered
-        issue = await closed(
-            issue=issue, 
-            author=author, 
-            current_assignee_ids=current_assignee_ids, 
-            config=config, 
-            all_members=all_members
-        )
-
-    elif "Re Open" in current_label_titles :
-        issue = await re_open(
-            issue=issue, 
-            author=author,
-            config=config,
-            current_assignee_ids=current_assignee_ids
-        )
-
-    elif "Dev Done" in current_label_titles :
-        issue = await dev_done(
-            config=config, 
-            issue=issue, 
-            author=author, 
-            current_assignee_ids=current_assignee_ids,
-            all_members=all_members
-        )
-
-    else:
-        issue.assignee_ids = current_assignee_ids + assign_to_ids
- 
-    issue.save()
-    return current_assignee_ids + assign_to_ids
-
-
-async def closed(issue, current_assignee_ids, config, all_members, author):
-    assignee_ids = [item for item in current_assignee_ids if item != author["id"]]
-
-    gitlab_users   = [member["gitlab_username"] for member in config["members"] if member["role"] == "dev_lead"]
+    notify_to = config.get_gitlab_member_by_label(project_id=project_id, labels=issue.labels)
     
-    dev_lead_ids = [
-        member["id"] for member in all_members
-        if member["username"] in gitlab_users
-    ]
-    issue.assignee_ids = assignee_ids + dev_lead_ids
-    issue.labels = []
-    issue_id = issue.iid
-    issue_url = issue.web_url
+    if "Dev Done" in issue.labels:
+        await dev_done(notify_to, issue)
 
-    for username in gitlab_users:
-        chat = helper.get_telegram_chat(config["project_id"], username)
+async def dev_done(notify_to, issue):
+    
+    title = issue.title
+    project_id = issue.project_id
+    issue_url  = issue.web_url
+    issue_id   = issue.iid
+
+    for username in notify_to:
+        chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
         tele_user = chat.get("username")
-        await telegram_handler.bot.send_message(
-            chat_id=chat.get("id"),
-            parse_mode=ParseMode.MARKDOWN,
-            text=f"Hi @{tele_user}, Ada task yang sudah *CLOSED* dengan ID [#{issue_id}]({issue_url}). Segera lakukan merge ya"
-        )
+        text=f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Segera TEST ya \n\n---\n {title} "
+        await telegram_handler.send_text(chat.get("id"), text=text)
 
-    return issue
-
-
-async def re_open(issue, author, current_assignee_ids, config):
-    issue.assignee_ids = [i for i in current_assignee_ids if i != author["id"]]
-    issue_id = issue.iid
-    issue_url = issue.web_url
-
-    for assignee in issue.assignees:
-        chat = helper.get_telegram_chat(config["project_id"], assignee.get("username"))
-        tele_user = chat.get("username")
-        await telegram_handler.bot.send_message(
-            chat_id=chat.get("id"),
-            parse_mode=ParseMode.MARKDOWN,
-            text=f"Hi @{tele_user}, Ada task yang di *RE-OPEN* dengan ID [#{issue_id}]({issue_url}). Segera cek ya"
-        )
-
-    return issue
-
-
-async def dev_done(issue, author, config, current_assignee_ids, all_members):
-    members = [member["gitlab_username"] for member in config["members"] if member["role"] == "tester_lead"]
-    tester_lead_ids = [
-        member["id"] for member in all_members
-        if member["username"] in members
-    ]
-
-    current_assignee_ids = [i for i in current_assignee_ids if i != author["id"]]
-    issue.assignee_ids = current_assignee_ids + tester_lead_ids
-    issue_id = issue.iid
-    issue_url = issue.web_url
-
-    for member in members:
-        chat = helper.get_telegram_chat(config["project_id"], member)
-        tele_user = chat.get("username")
-        await telegram_handler.bot.send_message(
-            chat_id=chat.get("id"),
-            parse_mode=ParseMode.MARKDOWN,
-            text=f"Hi @{tele_user}, Ada task yang sudah *DEV-DONE* dengan ID [#{issue_id}]({issue_url}). Segera TEST ya"
-        )
-
-    return issue

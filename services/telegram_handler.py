@@ -1,7 +1,9 @@
 import os 
 import re
-from telegram import Update, Bot
+
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
+from telegram.constants import ParseMode
+from telegram import Update, Bot
 from services import helper
 
 
@@ -57,3 +59,11 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
 
     else:
         await bot.send_message(chat_id, "Sorry, I don't know.")
+
+
+async def send_text(chat_id, text: str):
+    await bot.send_message(
+        chat_id=chat_id,
+        parse_mode=ParseMode.MARKDOWN,
+        text=text
+    )
