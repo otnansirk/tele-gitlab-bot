@@ -76,7 +76,8 @@ async def assignee_handler(**params):
     elif "Re Open" in current_label_titles :
         issue = await re_open(
             issue=issue, 
-            author=author, 
+            author=author,
+            config=config,
             current_assignee_ids=current_assignee_ids
         )
 
@@ -100,7 +101,6 @@ async def closed(issue, current_assignee_ids, config, all_members, author):
     assignee_ids = [item for item in current_assignee_ids if item != author["id"]]
 
     gitlab_users   = [member["gitlab_username"] for member in config["members"] if member["role"] == "dev_lead"]
-    telegram_user = [member["telegram_username"] for member in config["members"] if member["role"] == "dev_lead"]
     
     dev_lead_ids = [
         member["id"] for member in all_members
@@ -109,15 +109,18 @@ async def closed(issue, current_assignee_ids, config, all_members, author):
     issue.assignee_ids = assignee_ids + dev_lead_ids
     issue.labels = []
 
-    for username in telegram_user:
+    for username in gitlab_users:
         chat = helper.get_telegram_chat(config["project_id"], username)
-        await telegram_handler.bot.send_message(chat.get("id"), f"Hi @{username}, Ada task yang diclose dengan ID 123. Segra lakukan merge ya")
+        tele_user = chat.get("username")
+        await telegram_handler.bot.send_message(chat.get("id"), f"Hi @{tele_user}, Ada task yang diclose dengan ID 123. Segra lakukan merge ya")
 
     return issue
 
 
-async def re_open(issue, author, current_assignee_ids):
+async def re_open(issue, author, current_assignee_ids, config):
     current_assignee_ids.remove(author["id"])
+    telegram_users   = [member for member in config["members"] if member["role"] == "dev_lead"]
+
     issue.assignee_ids = current_assignee_ids
 
     return issue
