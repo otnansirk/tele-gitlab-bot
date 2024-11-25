@@ -66,8 +66,7 @@ async def issue_handler(**params):
 
     if issue.state == "closed" and "close" in action:
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_lead")
-        msg = f"[Task #{issue_id}]({issue_url}). Sudah selesai pengujian, mohon segera *dilakukan merge* \n\n---\n {title}"
-        await closed(notify_to=notify_to, issue=issue, project_id=project_id, message=msg)
+        await closed(notify_to=notify_to, issue=issue)
 
 
 async def notify_to_dev(notify_to, changes, message):
@@ -111,7 +110,7 @@ async def dev_done(project, notify_to, issue, changes):
         await _notify_to_tester_team(assignees=issue.assignees, project_id=project_id, message=msg)
 
     if "Reopen" in issue.labels:
-        msg = f"[Task #{issue_id}]({issue_url}). Sudah dapat kamu tes kembali. Mohon segera dilakukan *pengujian* ulang \n\n---\n {title}"
+        msg = f"Reopen [Task #{issue_id}]({issue_url}). Sudah dapat kamu tes kembali. Mohon segera dilakukan *pengujian* ulang \n\n---\n {title}"
         await _notify_to_tester_team(assignees=issue.assignees, project_id=project_id, message=msg)
 
 
@@ -135,7 +134,7 @@ async def reopen(notify_to, issue):
             tele_user = chat.get("username")
             tele_user_author = chat_author.get("username")
 
-            text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *Reopen* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
+            text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *RE-OPEN* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
             await telegram_handler.send_text(chat.get("id"), text=text)
 
 
@@ -152,11 +151,29 @@ async def _notify_to_tester_team(assignees, project_id, message: str):
             await telegram_handler.send_text(chat.get("id"), text=text)
 
 
-async def closed(notify_to: list, issue, project_id, message: str):
+async def closed(notify_to: list, issue):
+
+    project_id = issue.project_id
+    title      = issue.title
+    issue_url  = issue.web_url
+    issue_id   = issue.iid
+
     issue.labels = [label for label in issue.labels if label not in config.get_labels(project_id=project_id)]
     issue.save()
+    
+    mr_messages = []
+    merge_requests = [mr for mr in issue.related_merge_requests() if mr.get("state", "") == "opened"]
+    for index, mr in enumerate(merge_requests, start=1):
+        mr_title = mr.get("title", "")
+        mr_url = mr.get("web_url")
+        author_name = mr.get("author", {}).get("name")
+
+        msg = f"{index}. [{mr_title}]({mr_url}) permintaan dari {author_name}"
+        mr_messages.append(msg)
+
+    mr_message = "\n".join(mr_messages)
     for username in notify_to:
         chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
         tele_user = chat.get("username")
-        msg = f"Hi {tele_user}, {message}"
+        msg = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}). Sudah *CLOSE*, mohon segera *dilakukan merge* \n\n *Merge Request* : \n {mr_message} \n\n---\n {title}"
         await telegram_handler.send_text(chat.get("id"), text=msg)
