@@ -45,6 +45,9 @@ async def issue_handler(**params):
     if "Dev Done" in issue.labels:
         await dev_done(project, notify_to, issue, changes)
     
+    if "Internal Testing" in issue.labels:
+        await internal_testing(issue)
+    
 
 
 async def notify_to_dev(notify_to, issue, changes):
@@ -75,14 +78,17 @@ async def dev_done(project, notify_to, issue, changes):
     if "labels" in changes:
         tester_lead_gitlab_ids = []
         for username in notify_to:
-            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-            tele_user = chat.get("username")
-            text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Mohon segera dilakukan *pengujian* \n\n---\n {title}"
             member_on_project = helper.get_project_member_by_gitlab_username(project=project, username=username)
-            tester_lead_gitlab_ids.append(member_on_project.get("id", ""))
-            await telegram_handler.send_text(chat.get("id"), text=text)
+            if member_on_project.get("username"):
+                tester_lead_gitlab_ids.append(member_on_project.get("id", ""))
+                
+                chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=member_on_project.get("username"))
+                tele_user = chat.get("username")
+                text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Mohon segera dilakukan *pengujian* \n\n---\n {title}"
 
-        issue.assignee_ids = current_assignee_ids + dev_lead_ids
+                await telegram_handler.send_text(chat.get("id"), text=text)
+
+        issue.assignee_ids = current_assignee_ids + tester_lead_gitlab_ids
         issue.save()
 
     if "assignees" in changes:
@@ -96,3 +102,8 @@ async def dev_done(project, notify_to, issue, changes):
 
                 text = f"Hi {tele_user}, Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Mohon segera dilakukan *pengujian* \n\n---\n {title}"
                 await telegram_handler.send_text(chat.get("id"), text=text)
+
+
+async def internal_testing(issue):
+    issue.labels = [label for label in issue.labels if label != "Re Open"]
+    issue.save()
