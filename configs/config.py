@@ -1,9 +1,13 @@
 import json
+import os
 
 
 def get(project_id: str):
-    file = open(f"configs/projects/{project_id}.json")
-    return json.load(file)
+    if project_id in os.getenv('GITLAB_PROJECTS'):
+        file = open(f"configs/projects/{project_id}.json")
+        return json.load(file)
+    
+    return {}
 
 def get_gitlab_usernames_by_label(project_id: str, labels: list):
     config = get(project_id)

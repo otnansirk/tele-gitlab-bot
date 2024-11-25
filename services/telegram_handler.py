@@ -40,6 +40,9 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
 
             project_id = message.replace("/join ", "").split(":")[0]
             gitlab_username = message.replace("/join ", "").split(":")[1]
+            if not config.get(project_id=project_id):
+                await bot.send_message(chat_id, f"Invalid project ID {project_id}")
+                return
             
             telegram_usernames = config.get_telegram_usernames(project_id=project_id)
             gitlab_usernames = config.get_gitlab_usernames(project_id=project_id)
