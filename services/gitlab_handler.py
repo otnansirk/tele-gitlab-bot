@@ -50,7 +50,12 @@ async def issue_handler(**params):
     
     if "Reopen" in issue.labels and issue.state == "opened":
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
-        await reopen(notify_to, issue)
+        tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+        
+        author_username = issue.author.get("username", "")
+        
+        if author_username in tester_teams:
+            await reopen(notify_to, issue)
 
 
 
@@ -127,7 +132,7 @@ async def reopen(notify_to, issue):
             chat_author = helper.get_telegram_chat(project_id=project_id, gitlab_username=author_username)
             tele_user = chat.get("username")
             tele_user_author = chat_author.get("username")
-            
+
             text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *Reopen* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
             await telegram_handler.send_text(chat.get("id"), text=text)
 
