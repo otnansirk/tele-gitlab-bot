@@ -15,17 +15,20 @@
 
 Flow Notif telegram : 
 
-1. Issue -> Dev Done 
+1. Issue -> Open -> assigne to dev team 
+            -> notify : dev_team -> notify : dev_team_base_on_assignee
+
+2. Issue -> Dev Done 
             -> notify : tester_lead -> assign to team -> notify : tester_team_base_on_assignee
 
-2. Issue -> Internal Testing
+3. Issue -> Internal Testing
             -> Remove label : Re Open
 
-3. Issue -> Internal Testing -> Open (state)
+4. Issue -> Internal Testing -> Open (state)
                                 -> Add label : Re Open
                                 -> Notify : dev_team_base_on_assignee
 
-4. Issue -> Internal Testing -> Close (state)
+5. Issue -> Internal Testing -> Close (state)
                                 -> Remove label : Re Open
                                 -> Notify : dev_team_lead
 
