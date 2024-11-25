@@ -23,3 +23,12 @@ def get_gitlab_username_by_role(project_id: str, role: str):
     config = get(project_id)
     return config.get("gitlab_role_username_members", {}).get(role, [])
 
+def get_gitlab_usernames(project_id: str):
+    config = get(project_id)
+    all_members = []
+    for members in config.get("gitlab_role_username_members", {}).values():
+        all_members.extend(members)
+
+    unique_members = list(set(all_members))
+    return unique_members
+
