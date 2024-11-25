@@ -1,10 +1,12 @@
 import os 
 import re
+import json
 
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
 from telegram.constants import ParseMode
 from telegram import Update, Bot
 from services import helper
+from configs import config
 
 
 CHAT_ID_PATH =".chatids"
@@ -27,6 +29,9 @@ async def updater(data: dict):
         message=message
     )
 
+    return data
+
+
 async def join_bot(chat_id: int, username: str, message: str) -> None:
     pattern = r'^/join .+$'
     if re.match(pattern, message):
@@ -36,9 +41,8 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
             project_id = message.replace("/join ", "").split(":")[0]
             gitlab_username = message.replace("/join ", "").split(":")[1]
             
-            config = helper.get_config_project(project_id)
-            telegram_usernames = [item["telegram_username"] for item in config["members"]]
-            gitlab_usernames = [item["gitlab_username"] for item in config["members"]]
+            telegram_usernames = config.get_telegram_usernames(project_id=project_id)
+            gitlab_usernames = config.get_gitlab_usernames(project_id=project_id)
             
             if username in telegram_usernames and gitlab_username in gitlab_usernames:
                 directory = f"{CHAT_ID_PATH}/{project_id}"
@@ -49,7 +53,7 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
                 file = open(f"{directory}/{gitlab_username}.txt", "w")
                 file.write(f"{chat_id}:{username}:{gitlab_username}")
 
-                await bot.send_message(chat_id, f"You have joined project ID {project_id}")
+                await bot.send_message(chat_id, f"You have joined to project ID {project_id}")
                 return
 
             await bot.send_message(chat_id, f"You are not member of project ID {project_id}")

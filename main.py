@@ -38,7 +38,7 @@ async def handle_webhook_gitlab(request: Request):
 async def handle_webhook_telegram(request: Request):
     try:
         data = await request.json()
-        await telegram_handler.updater(data)
+        return await telegram_handler.updater(data)
     except Exception as e:
         print(e)
         return JSONResponse(
