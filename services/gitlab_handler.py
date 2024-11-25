@@ -84,7 +84,7 @@ async def dev_done(project, notify_to, issue, changes):
     current_assignee_ids = [assign["id"] for assign in issue.assignees]
 
 
-    if "labels" in changes:
+    if "labels" in changes and "Reopen" not in issue.labels:
         tester_lead_gitlab_ids = []
         for username in notify_to:
             member_on_project = helper.get_project_member_by_gitlab_username(project=project, username=username)
@@ -101,20 +101,16 @@ async def dev_done(project, notify_to, issue, changes):
         issue.save()
 
     if "assignees" in changes:
-        for assignee in issue.assignees:
-            username = assignee.get("username", "")
+        msg = f"Hi {tele_user}, Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Mohon segera dilakukan *pengujian* \n\n---\n {title}"
+        await _notify_to_tester_team(assignees=issue.assignees, project_id=project_id, message=msg)
 
-            registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
-            if username in registered_gitlab_usernames:
-                chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-                tele_user = chat.get("username")
-
-                text = f"Hi {tele_user}, Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Mohon segera dilakukan *pengujian* \n\n---\n {title}"
-                await telegram_handler.send_text(chat.get("id"), text=text)
+    if "Reopen" in issue.labels:
+        msg = f"[Task #{issue_id}]({issue_url}). Sudah dapat kamu tes kembali. Mohon segera dilakukan *pengujian* ulang \n\n---\n {title}"
+        await _notify_to_tester_team(assignees=issue.assignees, project_id=project_id, message=msg)
 
 
 async def internal_testing(issue):
-    issue.labels = [label for label in issue.labels if label != "Re Open"]
+    issue.labels = [label for label in issue.labels if label != "Reopen"]
     issue.save()
     
 
@@ -136,4 +132,14 @@ async def reopen(notify_to, issue):
             text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *Reopen* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
             await telegram_handler.send_text(chat.get("id"), text=text)
 
+async def _notify_to_tester_team(assignees, project_id, message: str):
+    for assignee in assignees:
+        username = assignee.get("username", "")
 
+        registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+        if username in registered_gitlab_usernames:
+            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+            tele_user = chat.get("username")
+
+            text = f"Hi {tele_user}, {message}"
+            await telegram_handler.send_text(chat.get("id"), text=text)
