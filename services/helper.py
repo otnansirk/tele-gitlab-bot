@@ -13,3 +13,8 @@ def get_telegram_chat(project_id: str, gitlab_username: str):
         "username": chat[1],
         "gitlab_username": chat[2],
     }
+
+def get_project_member_by_gitlab_username(project, username: str):
+    for member in project.members_all.list(get_all=True):
+        return member.get("username", "") == username
+    return {}

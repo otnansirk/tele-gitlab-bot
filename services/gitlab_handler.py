@@ -12,6 +12,7 @@ async def updater(data: dict):
     token       = os.getenv("GITLAB_TOKEN")
     project_id  = data.get('project', {}).get('id')
     issue_id    = data.get('object_attributes', {}).get('iid')
+    changes     = data.get('changes', {})
 
     gl = gitlab.Gitlab(url=url, private_token=token)
     project = gl.projects.get(project_id)
@@ -19,7 +20,9 @@ async def updater(data: dict):
     
     if issue.type == "ISSUE":
         await issue_handler(
-            issue=issue
+            project=project,
+            issue=issue,
+            changes=changes
         )
 
     return json.loads(issue.to_json())
@@ -28,35 +31,47 @@ async def updater(data: dict):
 # assignee member to issue
 async def issue_handler(**params):
 
-    issue  = params.get("issue")
-    project_id=issue.project_id
+    project = params.get("project")
+    issue   = params.get("issue")
+    changes = params.get("changes")
+    project_id = issue.project_id
 
     notify_to = config.get_gitlab_member_by_label(project_id=project_id, labels=issue.labels)
     
     if "Dev Done" in issue.labels:
-        await dev_done(notify_to, issue)
+        await dev_done(project, notify_to, issue, changes)
 
-async def dev_done(notify_to, issue):
-    
-    title = issue.title
+
+async def dev_done(project, notify_to, issue, changes):
+    title      = issue.title
     project_id = issue.project_id
     issue_url  = issue.web_url
     issue_id   = issue.iid
+    current_assignee_ids = [assign["id"] for assign in issue.assignees]
 
-    for username in notify_to:
-        chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-        tele_user = chat.get("username")
-        text=f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Segera TEST ya \n\n---\n {title} "
-        await telegram_handler.send_text(chat.get("id"), text=text)
 
-    for assignee in issue.assignees:
-        username = assignee.get("username", "")
-
-        registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
-        if username in registered_gitlab_usernames:
+    if "labels" in changes:
+        tester_lead_gitlab_ids = []
+        for username in notify_to:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
             tele_user = chat.get("username")
-
-            text=f"Hi {tele_user}, Selamat dapat tugas baru, [Task #{issue_id}]({issue_url}). Segera TEST ya \n\n---\n {title} "
+            text=f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Segera TEST ya \n\n---\n {title} "
+            member_on_project = helper.get_project_member_by_gitlab_username(project=project, username=username)
+            tester_lead_gitlab_ids.append(member_on_project.get("id", ""))
             await telegram_handler.send_text(chat.get("id"), text=text)
+
+        issue.assignee_ids = current_assignee_ids + dev_lead_ids
+        issue.save()
+
+    if "assignees" in changes:
+        for assignee in issue.assignees:
+            username = assignee.get("username", "")
+
+            registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+            if username in registered_gitlab_usernames:
+                chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+                tele_user = chat.get("username")
+
+                text=f"Hi {tele_user}, Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Segera *TEST* ya \n\n---\n {title} "
+                await telegram_handler.send_text(chat.get("id"), text=text)
 
