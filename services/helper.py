@@ -15,6 +15,11 @@ def get_telegram_chat(project_id: str, gitlab_username: str):
     }
 
 def get_project_member_by_gitlab_username(project, username: str):
-    for member in project.members_all.list(get_all=True):
-        return member.get("username", "") == username
+    all_members = project.members_all.list(get_all=True)
+    all_members = [member.__dict__['_attrs'] for member in all_members]
+
+    for member in all_members:
+        if member["username"] == username:
+            return member
+    
     return {}
