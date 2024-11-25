@@ -36,7 +36,7 @@ async def issue_handler(**params):
     changes = params.get("changes")
     project_id = issue.project_id
 
-    notify_to = config.get_gitlab_member_by_label(project_id=project_id, labels=issue.labels)
+    notify_to = config.get_gitlab_usernames_by_label(project_id=project_id, labels=issue.labels)
     
     if not issue.labels and issue.state == "opened":
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
@@ -48,6 +48,10 @@ async def issue_handler(**params):
     if "Internal Testing" in issue.labels:
         await internal_testing(issue)
     
+    if "Reopen" in issue.labels and issue.state == "opened":
+        notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
+        await reopen(notify_to, issue)
+
 
 
 async def notify_to_dev(notify_to, issue, changes):
@@ -107,3 +111,24 @@ async def dev_done(project, notify_to, issue, changes):
 async def internal_testing(issue):
     issue.labels = [label for label in issue.labels if label != "Re Open"]
     issue.save()
+    
+
+async def reopen(notify_to, issue):
+    title      = issue.title
+    project_id = issue.project_id
+    issue_url  = issue.web_url
+    issue_id   = issue.iid
+    author_username = issue.author.get("username", "")
+    current_assignees = [assign["username"] for assign in issue.assignees]
+
+    for username in notify_to:
+        if username in current_assignees:
+            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+            chat_author = helper.get_telegram_chat(project_id=project_id, gitlab_username=author_username)
+            tele_user = chat.get("username")
+            tele_user_author = chat_author.get("username")
+            
+            text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *Reopen* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
+            await telegram_handler.send_text(chat.get("id"), text=text)
+
+
