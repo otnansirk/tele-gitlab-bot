@@ -3,14 +3,14 @@ import os
 
 
 def get(project_id: str):
-    if project_id in os.getenv('GITLAB_PROJECT_IDS'):
+    if project_id in os.getenv("GITLAB_PROJECT_IDS"):
         # file = open(f"configs/projects/{project_id}.json")
-        config = os.getenv("GITLAB_PROJECT_58")
+        config = os.getenv("GITLAB_PROJECT_"+project_id)
         return json.loads(config)
     
     return {}
 
-def get_gitlab_usernames_by_label(project_id: str, labels: list):
+def get_gitlab_username_by_label(project_id: str, labels: list):
     config = get(project_id)
     for label in labels:
         role = config.get("notify_to", {}).get(label, "")
