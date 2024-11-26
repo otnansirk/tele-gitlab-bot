@@ -16,7 +16,7 @@ async def startup_event():
     await telegram_handler.set_webhook()
 
 
-@callback_route.post("/")
+@callback_route.post("/gitlab")
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
