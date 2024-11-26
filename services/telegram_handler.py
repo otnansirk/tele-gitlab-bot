@@ -23,6 +23,9 @@ async def updater(data: dict):
     username = data.get("message", {}).get("from", {}).get("username")
     message  = data.get("message", {}).get("text", "")
 
+    if message == "/start":
+        await send_text(chat_id, "Welcome to DevDsi \n\n You can join the project with this command : `/join gitlab_project_id:gitlab_username`")
+
     await join_bot(
         chat_id=chat_id,
         username=username,
