@@ -5,14 +5,17 @@ def get_config_project(id: str):
     return json.load(file)
 
 def get_telegram_chat(project_id: str, gitlab_username: str):
-    file = open(f".chatids/{project_id}/{gitlab_username}.txt")
-    chat = file.read().split(":")
+    try:
+        file = open(f".chatids/{project_id}/{gitlab_username}.txt")
+        chat = file.read().split(":")
 
-    return {
-        "id": chat[0],
-        "username": chat[1],
-        "gitlab_username": chat[2],
-    }
+        return {
+            "id": chat[0],
+            "username": chat[1],
+            "gitlab_username": chat[2],
+        }
+    except FileNotFoundError:
+        return None
 
 def get_project_member_by_gitlab_username(project, username: str):
     all_members = project.members_all.list(get_all=True)

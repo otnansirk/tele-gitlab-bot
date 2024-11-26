@@ -75,10 +75,11 @@ async def notify_to_dev(notify_to, changes, message):
         username = changes.get("assignees", {}).get("current", []).pop().get("username", "")
         if username in notify_to:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-            tele_user = chat.get("username")
-            
-            text = f"Hi {tele_user}, {message}"
-            await telegram_handler.send_text(chat.get("id"), text=text)
+            if chat :    
+                tele_user = chat.get("username")
+                
+                text = f"Hi {tele_user}, {message}"
+                await telegram_handler.send_text(chat.get("id"), text=text)
 
 
 async def dev_done(project, notify_to, issue, changes):
@@ -97,10 +98,11 @@ async def dev_done(project, notify_to, issue, changes):
                 tester_lead_gitlab_ids.append(member_on_project.get("id", ""))
                 
                 chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=member_on_project.get("username"))
-                tele_user = chat.get("username")
-                text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Mohon segera dilakukan *pengujian* \n\n---\n {title}"
+                if chat :    
+                    tele_user = chat.get("username")
+                    text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) sudah *DEV-DONE*. Mohon segera dilakukan *pengujian* \n\n---\n {title}"
 
-                await telegram_handler.send_text(chat.get("id"), text=text)
+                    await telegram_handler.send_text(chat.get("id"), text=text)
 
         issue.assignee_ids = current_assignee_ids + tester_lead_gitlab_ids
         issue.save()
@@ -130,12 +132,13 @@ async def reopen(notify_to, issue):
     for username in notify_to:
         if username in current_assignees:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-            chat_author = helper.get_telegram_chat(project_id=project_id, gitlab_username=author_username)
-            tele_user = chat.get("username")
-            tele_user_author = chat_author.get("username")
+            if chat :
+                chat_author = helper.get_telegram_chat(project_id=project_id, gitlab_username=author_username)
+                tele_user = chat.get("username")
+                tele_user_author = chat_author.get("username")
 
-            text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *RE-OPEN* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
-            await telegram_handler.send_text(chat.get("id"), text=text)
+                text = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}) tidak lolos tes, di *RE-OPEN* oleh @{tele_user_author}. Mohon segera *cek* dan *dikerjakan* \n\n---\n {title}"
+                await telegram_handler.send_text(chat.get("id"), text=text)
 
 
 async def _notify_to_tester_team(assignees, project_id, message: str):
@@ -145,10 +148,11 @@ async def _notify_to_tester_team(assignees, project_id, message: str):
         registered_gitlab_usernames = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
         if username in registered_gitlab_usernames:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-            tele_user = chat.get("username")
+            if chat :    
+                tele_user = chat.get("username")
 
-            text = f"Hi {tele_user}, {message}"
-            await telegram_handler.send_text(chat.get("id"), text=text)
+                text = f"Hi {tele_user}, {message}"
+                await telegram_handler.send_text(chat.get("id"), text=text)
 
 
 async def closed(notify_to: list, issue):
@@ -174,6 +178,7 @@ async def closed(notify_to: list, issue):
     mr_message = "\n".join(mr_messages)
     for username in notify_to:
         chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-        tele_user = chat.get("username")
-        msg = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}). Sudah *CLOSE*, mohon segera *dilakukan merge* \n\n *Merge Request* : \n {mr_message} \n\n---\n {title}"
-        await telegram_handler.send_text(chat.get("id"), text=msg)
+        if chat :
+            tele_user = chat.get("username")
+            msg = f"Hi {tele_user}, [Task #{issue_id}]({issue_url}). Sudah *CLOSE*, mohon segera *dilakukan merge* \n\n *Merge Request* : \n {mr_message} \n\n---\n {title}"
+            await telegram_handler.send_text(chat.get("id"), text=msg)
