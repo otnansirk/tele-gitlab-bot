@@ -1,35 +1,22 @@
 {
-    "project_id": "<PROJECT_ID>",
-    "members": [
-        {
-            "labels": ["closed"],
-            "role": "dev_lead",
-            "gitlab_username": "<USERNAME>",
-            "telegram_username": "<USERNAME>"
-        },
-        {
-            "labels": ["Re Open"],
-            "role": "dev",
-            "gitlab_username": "<USERNAME>",
-            "telegram_username": "<USERNAME>"
-        },
-        {
-            "labels": ["Dev Done"],
-            "role": "tester_lead",
-            "gitlab_username": "<USERNAME>",
-            "telegram_username": "<USERNAME>"
-        },
-        {
-            "labels": ["Dev Done", "In Progress", "Internal Testing"],
-            "role": "pm_lead",
-            "gitlab_username": "<USERNAME>",
-            "telegram_username": "<USERNAME>"
-        },
-        {
-            "labels": ["closed"],
-            "role": "lord",
-            "gitlab_username": "<USERNAME>",
-            "telegram_username": "<USERNAME>"
-        }
-    ]
+    "project_id": "<GITLAB_PROJECT_ID>",
+    "telegram_username_members": [
+        "<TELEGRAMUSERNAME>"
+    ],
+    "gitlab_role_username_members": {
+        "dev_lead": [<GITLAB_USENAME>, <GITLAB_USENAME>],
+        "dev_team": [<GITLAB_USENAME>, <GITLAB_USENAME>],
+        "tester_lead": [<GITLAB_USENAME>, <GITLAB_USENAME>],
+        "tester_team": [<GITLAB_USENAME>, <GITLAB_USENAME>],
+        "pm_lead": [<GITLAB_USENAME>, <GITLAB_USENAME>],
+        "pm_team": [<GITLAB_USENAME>, <GITLAB_USENAME>]
+    },
+    "notify_to": {
+        "opened": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>",
+        "In Progress": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>",
+        "Dev Done": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>",
+        "Internal Testing": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>",
+        "Reopen": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>",
+        "closed": "<GITLAB_ROLE_USERNAME_MEMBER_KEY>"
+    }
 }
