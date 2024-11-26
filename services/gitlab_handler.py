@@ -108,7 +108,7 @@ async def dev_done(project, notify_to, issue, changes):
         issue.save()
 
     if "assignees" in changes:
-        msg = f"Hi {tele_user}, Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Mohon segera dilakukan *pengujian* \n\n---\n {title}"
+        msg = f"Selamat kamu dapat tugas baru, [Task #{issue_id}]({issue_url}). Mohon segera dilakukan *pengujian* \n\n---\n {title}"
         await _notify_to_tester_team(assignees=issue.assignees, project_id=project_id, message=msg)
 
     if "Reopen" in issue.labels:
