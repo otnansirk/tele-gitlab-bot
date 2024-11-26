@@ -38,7 +38,7 @@ async def issue_handler(**params):
     changes = params.get("changes")
     action  = payload.get('object_attributes', {}).get('action')
 
-    project_id = issue.project_id
+    project_id = str(issue.project_id)
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
@@ -83,7 +83,7 @@ async def notify_to_dev(notify_to, changes, message):
 
 async def dev_done(project, notify_to, issue, changes):
     title      = issue.title
-    project_id = issue.project_id
+    project_id = str(issue.project_id)
     issue_url  = issue.web_url
     issue_id   = issue.iid
     current_assignee_ids = [assign["id"] for assign in issue.assignees]
@@ -121,7 +121,7 @@ async def internal_testing(issue):
 
 async def reopen(notify_to, issue):
     title      = issue.title
-    project_id = issue.project_id
+    project_id = str(issue.project_id)
     issue_url  = issue.web_url
     issue_id   = issue.iid
     author_username = issue.author.get("username", "")
@@ -153,7 +153,7 @@ async def _notify_to_tester_team(assignees, project_id, message: str):
 
 async def closed(notify_to: list, issue):
 
-    project_id = issue.project_id
+    project_id = str(issue.project_id)
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
