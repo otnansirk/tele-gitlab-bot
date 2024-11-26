@@ -10,7 +10,7 @@
 3. pip install -r requirments.txt
 4. Rename `.env.example` to `.env` and adjust to yous need. 
 5. Rename `configs/projects/<Gitlab_Project_ID>.json.example` to `configs/projects/<Gitlab_Project_ID>.json`. and adjust  <Gitlab_Project_ID> to your gitlab Project_ID. 
-6. Run `fastapi dev main.py`
+6. Run `fastapi dev main.py` for development and `uvicorn main:app --host 0.0.0.0` for production
 
 
 Flow Notif telegram : 
