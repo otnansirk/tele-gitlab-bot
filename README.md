@@ -7,8 +7,8 @@
 
 2. **Value Format:**
    - The value for `GITLAB_PROJECT_<GITLAB_PROJECT_ID>` must be in JSON format. Specifically, it should be:
-     - **Stringified JSON** or **JSON oneline** format (a single-line JSON representation).
-   - Do not change the structure of the value for `GITLAB_PROJECT_<GITLAB_PROJECT_ID>`. Only replace the `<GITLAB_PROJECT_ID>` placeholder with the appropriate value.
+      - **JSON oneline** format (a single-line JSON representation).
+      - Do not change the structure of the value for `GITLAB_PROJECT_<GITLAB_PROJECT_ID>`. Only replace the   `<GITLAB_PROJECT_ID>` placeholder with the appropriate value.
 
 3. **Allowed Changes:**
    - The only modification allowed is to replace the placeholder `< >` with the corresponding `projectId`. Any other changes to the structure or contents of the value are not permitted.
