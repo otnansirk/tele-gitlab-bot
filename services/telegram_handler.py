@@ -100,6 +100,16 @@ async def task_detail(chat_id: int, username: str, message: str):
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
         dev_teams = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         
+        assignee_dev_msg = "Assignee to DEV : "
+        assignee_tester_msg = "Assignee to TESTER : "
+        current_assignee_usernames = [assign["username"] for assign in issue.assignees]
+        for username in current_assignee_usernames:
+            if username in dev_teams:
+                assignee_dev_msg = assignee_dev_msg+ username + ", "
+            if username in tester_teams:
+                assignee_tester_msg = assignee_tester_msg+ username + ", "
+            
+
         reopen_events = [
             item.__dict__['_attrs'] for item in events 
             if item.__dict__['_attrs']["action"] == "add" 
@@ -144,9 +154,9 @@ async def task_detail(chat_id: int, username: str, message: str):
         msg_first_dev_done = f"\n\nFirst DEV DONE \n*{first_dev_done_date}*"
         msg_total_reopen = f"\n\nTotal REOPEN \n*{total_reopen}*"
         msg_closed = f"\n\nCLOSED by {close_message}"
-        msg_title = f"---\n*{issue_title}*"
+        msg_title = f"---\n_{issue_title}_"
         
-        msg = f"[Task #{issue_id}]({issue_url}) {msg_first_inprogress} {msg_first_dev_done} {msg_closed} {msg_total_reopen} \n\n{msg_title}"
+        msg = f"[Task #{issue_id}]({issue_url}) \n\n{assignee_dev_msg} \n{assignee_tester_msg} {msg_first_inprogress} {msg_first_dev_done} {msg_closed} {msg_total_reopen} \n\n{msg_title}"
         
         await send_text(chat_id=chat_id, text=msg)
 
