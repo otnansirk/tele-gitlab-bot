@@ -1,0 +1,6 @@
+OPENED="opened"
+IN_PROGRESS="In Progress"
+DEV_DONE="Dev Done"
+INTERNAL_TESTING="Internal Testing"
+REOPEN="Reopen"
+CLOSED="closed"
