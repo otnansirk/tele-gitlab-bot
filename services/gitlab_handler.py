@@ -7,9 +7,9 @@ from telegram.constants import ParseMode
 from configs import config
 import consts.label
 
-def init_project(project_id):
-    url         = os.getenv("GITLAB_BASEURL")
-    token       = os.getenv("GITLAB_TOKEN")
+def init_project(project_id: str):
+    url         = config.get(project_id=project_id).get("base_url", "")
+    token       = config.get(project_id=project_id).get("token", "")
 
     gl = gitlab.Gitlab(url=url, private_token=token)
     return gl.projects.get(project_id)
@@ -19,13 +19,12 @@ def get_issue(project_id: str, id: str):
     return project.issues.get(id=id)
 
 async def updater(data: dict):
-    project_id  = data.get("project", {}).get("id")
+    project_id  = str(data.get("project", {}).get("id"))
     issue_id    = data.get("object_attributes", {}).get("iid")
     changes     = data.get("changes", {})
 
     project = init_project(project_id)
     issue = get_issue(project_id, issue_id)
-
     if issue.type == "ISSUE":
         await issue_handler(
             payload=data,
