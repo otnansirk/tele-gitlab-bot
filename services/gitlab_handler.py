@@ -25,6 +25,7 @@ async def updater(data: dict):
 
     project = init_project(project_id)
     issue = get_issue(project_id, issue_id)
+
     if issue.type == "ISSUE":
         await issue_handler(
             payload=data,
@@ -44,22 +45,22 @@ async def issue_handler(**params):
     issue   = params.get("issue")
     changes = params.get("changes")
     action  = payload.get("object_attributes", {}).get("action")
+    action_by_user  = payload.get("user", {})
 
     project_id = str(issue.project_id)
 
     if not any(item in config.get_labels(project_id=project_id) for item in issue.labels) and  issue.state == "opened":
-        await _notify_to_dev(changes, issue)
+        await _notify_to_dev(changes, issue, action_by_user)
 
     if consts.label.IN_PROGRESS in issue.labels:
-        await _notify_to_pm(issue=issue, label=consts.label.IN_PROGRESS)
+        await _notify_to_pm(issue=issue, label=consts.label.IN_PROGRESS, action_by_user=action_by_user)
 
     if consts.label.DEV_DONE in issue.labels:
         notify_to = config.get_gitlab_username_by_label(project_id=project_id, labels=issue.labels)
-        await dev_done(project, notify_to, issue, changes)
+        await dev_done(project, notify_to, issue, changes, action_by_user)
 
     if consts.label.INTERNAL_TESTING in issue.labels:
-        await _notify_to_pm(issue=issue, label=consts.label.INTERNAL_TESTING)
-        await internal_testing(issue)
+        await internal_testing(issue, action_by_user)
     
     if consts.label.REOPEN in issue.labels and issue.state == "opened":
         issue.state_event = 'reopen'
@@ -67,24 +68,24 @@ async def issue_handler(**params):
 
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
-        author_username = issue.author.get("username", "")
+        author_username = action_by_user.get("username", "")
 
         if author_username in tester_teams:
-            await reopen(notify_to, issue)
-            await _notify_to_pm(issue=issue, label=consts.label.REOPEN)
+            await reopen(notify_to, issue, action_by_user)
+            await _notify_to_pm(issue=issue, label=consts.label.REOPEN, action_by_user=action_by_user)
 
 
     if issue.state == "closed" and "close" in action:
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_lead")
-        await closed(notify_to=notify_to, issue=issue)
-        await _notify_to_pm(issue=issue, label=consts.label.CLOSED)
+        await closed(notify_to=notify_to, issue=issue, action_by_user=action_by_user)
+        await _notify_to_pm(issue=issue, label=consts.label.CLOSED, action_by_user=action_by_user)
 
 
-async def _notify_to_dev(changes, issue):
+async def _notify_to_dev(changes, issue, action_by_user):
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
-    author_name = issue.author.get("name", "")
+    author_name = action_by_user.get("name", "")
     project_id = str(issue.project_id)
     
     notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
@@ -104,11 +105,11 @@ async def _notify_to_dev(changes, issue):
                 await telegram_handler.send_text(chat.get("id"), text=text)
 
 
-async def _notify_to_pm(issue, label):
+async def _notify_to_pm(issue, label, action_by_user):
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
-    author_name = issue.author.get("name", "")
+    author_name = action_by_user.get("name", "")
     project_id = str(issue.project_id)
 
     notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="pm_lead")
@@ -126,12 +127,12 @@ async def _notify_to_pm(issue, label):
             await telegram_handler.send_text(chat.get("id"), text=text)
 
 
-async def dev_done(project, notify_to, issue, changes):
+async def dev_done(project, notify_to, issue, changes, action_by_user):
     title      = issue.title
     project_id = str(issue.project_id)
     issue_url  = issue.web_url
     issue_id   = issue.iid
-    author_name = issue.author.get("name", "")
+    author_name = action_by_user.get("name", "")
     current_assignee_ids = [assign["id"] for assign in issue.assignees]
 
     if "labels" in changes and consts.label.REOPEN not in issue.labels:
@@ -155,7 +156,7 @@ async def dev_done(project, notify_to, issue, changes):
 
         issue.assignee_ids = current_assignee_ids + tester_lead_gitlab_ids
         issue.save()
-        await _notify_to_pm(issue=issue, label=consts.label.DEV_DONE)
+        await _notify_to_pm(issue=issue, label=consts.label.DEV_DONE, action_by_user=action_by_user)
 
 
     if "assignees" in changes:
@@ -188,17 +189,23 @@ async def dev_done(project, notify_to, issue, changes):
                 await _notify_to_tester_team(username=username, project_id=project_id, message=msg)
 
 
-async def internal_testing(issue):
-    issue.labels = [label for label in issue.labels if label != consts.label.REOPEN]
-    issue.save()
+async def internal_testing(issue, action_by_user):
+    project_id = str(issue.project_id)
+    author_tester_team = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+    if action_by_user.get("username") in author_tester_team:
+        issue.labels = [label for label in issue.labels if label != consts.label.REOPEN]
+        issue.save()
+
+        await _notify_to_pm(issue=issue, label=consts.label.INTERNAL_TESTING, action_by_user=action_by_user)
+
     
 
-async def reopen(notify_to, issue):
+async def reopen(notify_to, issue, action_by_user):
     title      = issue.title
     project_id = str(issue.project_id)
     issue_url  = issue.web_url
     issue_id   = issue.iid
-    author_name = issue.author.get("name", "")
+    author_name = action_by_user.get("name", "")
     current_assignees = [assign["username"] for assign in issue.assignees]
     
     for username in notify_to:
@@ -221,13 +228,13 @@ async def _notify_to_tester_team(username, project_id, message: str):
         await telegram_handler.send_text(chat.get("id"), text=message)
 
 
-async def closed(notify_to: list, issue):
+async def closed(notify_to: list, issue, action_by_user):
 
     project_id = str(issue.project_id)
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
-    author_name = issue.author.get("name", "")
+    author_name = action_by_user.get("name", "")
 
     issue.labels = [label for label in issue.labels if label not in config.get_labels(project_id=project_id)]
     issue.save()
@@ -239,7 +246,7 @@ async def closed(notify_to: list, issue):
         mr_url = mr.get("web_url")
         mr_author_name = mr.get("author", {}).get("name")
 
-        msg = f"{index}. [{mr_title}]({mr_url}) permintaan dari {mr_author_name}"
+        msg = f"{index}. [{mr_title}]({mr_url}) requested by {mr_author_name}"
         mr_messages.append(msg)
 
     mr_message = "\n".join(mr_messages)
