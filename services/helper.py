@@ -41,7 +41,7 @@ def get_after_reopen_message(author_name, to, issue_id, issue_url, title):
 
 def get_closed_message(author_name, to, issue_id, issue_url, title, mr_msg: list):
     if mr_msg:
-        mr_msg = f"*Merge Request* \n {mr_msg}"
+        mr_msg = f"*Detail MR :* \n {mr_msg}"
 
-    return f"Hi {to}, [Task #{issue_id}]({issue_url}) updated to *CLOSED* by {author_name}. Please check immediately \n {mr_msg} \n\n ---\n _{title}_"
+    return f"Hi {to}, [Task #{issue_id}]({issue_url}) updated to *CLOSED* by {author_name}. Please check immediately \n\n {mr_msg} \n\n ---\n _{title}_"
     
