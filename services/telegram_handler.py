@@ -3,12 +3,13 @@ import re
 import json
 
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from services import gitlab_handler
 from telegram import Update, Bot
 from services import helper
 from configs import config
-from consts import label
+from consts import label as const_label, message as const_message
 import datetime
 
 CHAT_ID_PATH =".chatids"
@@ -19,33 +20,46 @@ async def set_webhook():
     await bot.set_webhook(os.getenv("TELEGRAM_BOT_WEBHOOK"))
     print(f"Webhook set to {os.getenv('TELEGRAM_BOT_WEBHOOK')}")
 
+def _inline_keyboard():
+    keyboard = [
+        [
+            InlineKeyboardButton("🏠 Home", callback_data="home"),
+            InlineKeyboardButton("🆘 Help me", callback_data="help")
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 async def updater(data: dict):
-    chat_id  = data.get("message", {}).get("from", {}).get("id")
-    username = data.get("message", {}).get("from", {}).get("username")
-    message  = data.get("message", {}).get("text", "")
+    
+    if "callback_query" in data:
+        await callback_query_hanlder(data)
 
-    join_pattern = r'^/join .+$'
-    task_detail_pattern = r'^/taskd .+$'
+    if "message" in data:
+        chat_id  = data.get("message", {}).get("from", {}).get("id")
+        username = data.get("message", {}).get("from", {}).get("username")
+        message  = data.get("message", {}).get("text", "")
 
-    if message == "/start":
-        await send_text(chat_id, "Welcome to DevDsi \n\n You can join the project with this command : `/join gitlab_project_id:gitlab_username`")
-    elif re.match(join_pattern, message):
-        await join_bot(
-            chat_id=chat_id,
-            username=username,
-            message=message
-        )
-    elif re.match(task_detail_pattern, message):
-        return await task_detail(
-            chat_id=chat_id,
-            username=username,
-            message=message
-        )
-    else:
-        await bot.send_message(chat_id, "Sorry, I don't know.")
+        join_pattern = r'^/join .+$'
+        task_detail_pattern = r'^/taskd .+$'
 
-    return data
+        if message == "/start":
+            await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard(), parse_mode=ParseMode.MARKDOWN)
+        elif re.match(join_pattern, message):
+            await join_bot(
+                chat_id=chat_id,
+                username=username,
+                message=message
+            )
+        elif re.match(task_detail_pattern, message):
+            return await task_detail(
+                chat_id=chat_id,
+                username=username,
+                message=message
+            )
+        else:
+            await bot.send_message(chat_id, "Sorry, I don't know.")
+
+        return data
 
 
 async def join_bot(chat_id: int, username: str, message: str) -> None:
@@ -113,19 +127,19 @@ async def task_detail(chat_id: int, username: str, message: str):
         reopen_events = [
             item.__dict__['_attrs'] for item in events 
             if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == label.REOPEN
+            and item.__dict__['_attrs']["label"]["name"] == const_label.REOPEN
             and item.__dict__['_attrs']["user"]["username"] in tester_teams
         ]
         inprogress_events = [
             item.__dict__['_attrs'] for item in events 
             if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == label.IN_PROGRESS
+            and item.__dict__['_attrs']["label"]["name"] == const_label.IN_PROGRESS
             and item.__dict__['_attrs']["user"]["username"] in dev_teams
         ]
         dev_done_events = [
             item.__dict__['_attrs'] for item in events 
             if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == label.DEV_DONE
+            and item.__dict__['_attrs']["label"]["name"] == const_label.DEV_DONE
             and item.__dict__['_attrs']["user"]["username"] in dev_teams
         ]
 
@@ -170,3 +184,28 @@ async def send_text(chat_id, text: str):
         parse_mode=ParseMode.MARKDOWN,
         text=text
     )
+
+async def callback_query_hanlder(data: dict):
+    query = data.get("callback_query", {})
+    callback_data = data.get("callback_query", {}).get("data", "")
+    message_id = query.get("message", {}).get("message_id", "")
+    chat_id = query.get("message", {}).get("chat", {}).get("id", "")
+    if callback_data == "home":
+        msg = const_message.WELCOME_MESSAGE
+        await bot.edit_message_text(
+            chat_id=chat_id, 
+            message_id=message_id, 
+            text=msg, 
+            parse_mode=ParseMode.MARKDOWN, 
+            reply_markup=_inline_keyboard()
+        )
+
+    if callback_data == "help":
+        msg = const_message.HELP_MESSAGE
+        await bot.edit_message_text(
+            chat_id=chat_id, 
+            message_id=message_id, 
+            text=msg, 
+            parse_mode=ParseMode.MARKDOWN, 
+            reply_markup=_inline_keyboard()
+        )
