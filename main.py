@@ -10,10 +10,10 @@ callback_route = APIRouter(prefix="/api/callbacks")
 
 load_dotenv()
 
-# @app.on_event("startup")
-# async def startup_event():
-#     """Set Telegram bot webhook."""
-#     await telegram_handler.set_webhook()
+@app.on_event("startup")
+async def startup_event():
+    """Set Telegram bot webhook."""
+    await telegram_handler.set_webhook()
 
 
 @app.get("/")
