@@ -20,7 +20,7 @@ async def set_webhook():
     await bot.set_webhook(os.getenv("TELEGRAM_BOT_WEBHOOK"))
     print(f"Webhook set to {os.getenv('TELEGRAM_BOT_WEBHOOK')}")
 
-def _inline_keyboard():
+def _inline_keyboard_on_start():
     keyboard = [
         [
             InlineKeyboardButton("🏠 Home", callback_data="home"),
@@ -41,9 +41,10 @@ async def updater(data: dict):
 
         join_pattern = r'^/join .+$'
         task_detail_pattern = r'^/taskd .+$'
+        help_pattern = r'^/help .+$'
 
         if message == "/start":
-            await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard(), parse_mode=ParseMode.MARKDOWN)
+            await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
         elif re.match(join_pattern, message):
             await join_bot(
                 chat_id=chat_id,
@@ -55,6 +56,11 @@ async def updater(data: dict):
                 chat_id=chat_id,
                 username=username,
                 message=message
+            )
+        elif re.match(help_pattern, message):
+            return await send_text(
+                chat_id=chat_id,
+                text=const_message.HELP_MESSAGE
             )
         else:
             await bot.send_message(chat_id, "Sorry, I don't know.")
@@ -192,20 +198,26 @@ async def callback_query_hanlder(data: dict):
     chat_id = query.get("message", {}).get("chat", {}).get("id", "")
     if callback_data == "home":
         msg = const_message.WELCOME_MESSAGE
+        markup = [
+            [InlineKeyboardButton("🆘 Help me", callback_data="help")]
+        ]
         await bot.edit_message_text(
             chat_id=chat_id, 
             message_id=message_id, 
             text=msg, 
             parse_mode=ParseMode.MARKDOWN, 
-            reply_markup=_inline_keyboard()
+            reply_markup=InlineKeyboardMarkup(markup)
         )
 
     if callback_data == "help":
         msg = const_message.HELP_MESSAGE
+        markup = [
+            [InlineKeyboardButton("🢀 Back to home", callback_data="home")]
+        ]
         await bot.edit_message_text(
             chat_id=chat_id, 
             message_id=message_id, 
             text=msg, 
             parse_mode=ParseMode.MARKDOWN, 
-            reply_markup=_inline_keyboard()
+            reply_markup=InlineKeyboardMarkup(markup)
         )
