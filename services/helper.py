@@ -13,6 +13,21 @@ def get_telegram_chat(project_id: str, gitlab_username: str):
             "id": chat[0],
             "username": chat[1],
             "gitlab_username": chat[2],
+            "project_id": chat[3],
+        }
+    except FileNotFoundError:
+        return None
+
+def get_user_by_telegram_chat(project_id: str, telegram_username: str):
+    try:
+        file = open(f".chatids/{project_id}/{telegram_username}.txt")
+        chat = file.read().split(":")
+
+        return {
+            "id": chat[0],
+            "username": chat[1],
+            "gitlab_username": chat[2],
+            "project_id": chat[3],
         }
     except FileNotFoundError:
         return None
