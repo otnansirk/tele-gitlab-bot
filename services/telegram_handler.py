@@ -109,6 +109,7 @@ async def task_detail(chat_id: int, username: str, message: str):
         issue_title = issue.title
         issue_url = issue.web_url
         issue_id = issue.iid
+        current_state = issue.state
 
         issue_dict = json.loads(issue.to_json())
         closed_by = issue_dict["closed_by"]
@@ -118,8 +119,8 @@ async def task_detail(chat_id: int, username: str, message: str):
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
         dev_teams = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         
-        assignee_dev_msg = "Assignee to DEV : "
-        assignee_tester_msg = "Assignee to TESTER : "
+        assignee_dev_msg = ""
+        assignee_tester_msg = ""
         current_assignee_usernames = [assign["username"] for assign in issue.assignees]
         for username in current_assignee_usernames:
             if username in dev_teams:
@@ -168,14 +169,18 @@ async def task_detail(chat_id: int, username: str, message: str):
 
         total_reopen = len(reopen_events)
 
-        msg_first_inprogress = f"\n\nFirst IN PROGRESS \n*{first_inprogress_date}*"
-        msg_first_dev_done = f"\n\nFirst DEV DONE \n*{first_dev_done_date}*"
-        msg_total_reopen = f"\n\nTotal REOPEN \n*{total_reopen}*"
-        msg_closed = f"\n\nCLOSED by {close_message}"
-        msg_title = f"---\n_{issue_title}_"
-        
-        msg = f"[Task #{issue_id}]({issue_url}) \n\n{assignee_dev_msg} \n{assignee_tester_msg} {msg_first_inprogress} {msg_first_dev_done} {msg_closed} {msg_total_reopen} \n\n{msg_title}"
-        
+        msg = helper.get_taskd_message(
+            issue_id=issue_id,
+            issue_url=issue_url,
+            current_state=current_state,
+            assignee_dev_msg=assignee_dev_msg,
+            assignee_tester_msg=assignee_tester_msg,
+            msg_first_inprogress=first_inprogress_date,
+            msg_first_dev_done=first_dev_done_date,
+            msg_closed=close_message,
+            msg_total_reopen=total_reopen,
+            task_title=issue_title
+        )
         await send_text(chat_id=chat_id, text=msg)
 
     else:
