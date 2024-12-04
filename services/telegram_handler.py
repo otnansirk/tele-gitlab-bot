@@ -84,9 +84,11 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
 
             if not os.path.exists(directory):
                 os.makedirs(directory)
-
-            file = open(f"{directory}/{gitlab_username}.txt", "w")
-            file.write(f"{chat_id}:{username}:{gitlab_username}")
+            content = f"{chat_id}:{username}:{gitlab_username}:{project_id}"
+            file1 = open(f"{directory}/{gitlab_username}.txt", "w")
+            file2 = open(f"{directory}/{username}.txt", "w")
+            file1.write(content)
+            file2.write(content)
 
             await bot.send_message(chat_id, f"You have joined to project ID {project_id}")
             return
