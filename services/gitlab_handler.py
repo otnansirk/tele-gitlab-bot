@@ -62,6 +62,8 @@ async def issue_handler(**params):
         await internal_testing(issue, action_by_user)
     
     if consts.label.REOPEN in issue.labels and issue.state == "opened":
+        issue.state_event = 'reopen'
+        issue.save()
 
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
@@ -108,6 +110,7 @@ async def _notify_to_pm(issue, label, action_by_user):
     issue_id   = issue.iid
     author_name = action_by_user.get("name", "")
     project_id = str(issue.project_id)
+
     notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="pm_lead")
     for username in notify_to:
         chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
@@ -203,6 +206,7 @@ async def reopen(notify_to, issue, action_by_user):
     issue_id   = issue.iid
     author_name = action_by_user.get("name", "")
     current_assignees = [assign["username"] for assign in issue.assignees]
+    
     for username in notify_to:
         if username in current_assignees:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
