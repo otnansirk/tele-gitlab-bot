@@ -8,8 +8,9 @@ HELP_MESSAGE = """
 🤖 *Hanoman Commands*
 
 ❕ *Join GitLab Notifications*  
-  `/join <gitlab_project_id>:<gitlab_username>`  
-  _Subscribe to notifications for a specific GitLab project._
+  `/join GITLAB_PROJECT_ID:GITLAB_USERNAME`
+   _Subscribe to notifications for a specific GitLab project._
+   Example : `/join 58:suta`
 """
 
 # ✅ *View Task Details*  
