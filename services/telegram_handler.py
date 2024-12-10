@@ -3,14 +3,16 @@ import re
 import json
 
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
+from consts import label as const_label, message as const_message
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
+from core.db.database import Database
 from services import gitlab_handler
 from telegram import Update, Bot
 from services import helper
 from configs import config
-from consts import label as const_label, message as const_message
 import datetime
+
 
 CHAT_ID_PATH =".chatids"
 token_key    = os.getenv("TELEGRAM_BOT_KEY")
@@ -29,7 +31,7 @@ def _inline_keyboard_on_start():
     return InlineKeyboardMarkup(keyboard)
 
 async def updater(data: dict):
-    
+
     if "callback_query" in data:
         await callback_query_hanlder(data)
 
@@ -80,15 +82,17 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
         gitlab_usernames = config.get_gitlab_usernames(project_id=project_id)
         
         if username in telegram_usernames and gitlab_username in gitlab_usernames:
-            directory = f"{CHAT_ID_PATH}/{project_id}"
-
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            content = f"{chat_id}:{username}:{gitlab_username}:{project_id}"
-            file1 = open(f"{directory}/{gitlab_username}.txt", "w")
-            file2 = open(f"{directory}/{username}.txt", "w")
-            file1.write(content)
-            file2.write(content)
+            db = Database()
+            tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+            if not (len(tele_account.data)):
+                print(tele_account.count == None)
+                tele_account_data = {
+                    "chat_id": chat_id,
+                    "username": username,
+                    "gitlab_username": gitlab_username,
+                    "gitlab_project_id": project_id,
+                }
+                db.insert("telegram_account", tele_account_data)
 
             await bot.send_message(chat_id, f"You have joined to project ID {project_id}")
             return
