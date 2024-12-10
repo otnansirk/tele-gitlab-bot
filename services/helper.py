@@ -5,13 +5,15 @@ def get_telegram_chat(project_id: str, gitlab_username: str):
     try:
         db = Database()
         tele_account = db.fetch(table_name="telegram_account").select("*").eq("gitlab_username", gitlab_username).eq("gitlab_project_id", project_id).execute()
-        chat = tele_account.data[0]
-        return {
-            "id": chat.get("chat_id", ""),
-            "username": chat.get("username", ""),
-            "gitlab_username": chat.get("gitlab_username", ""),
-            "project_id": chat.get("gitlab_project_id", ""),
-        }
+        if len(tele_account.data):
+            chat = tele_account.data[0]
+            return {
+                "id": chat.get("chat_id", ""),
+                "username": chat.get("username", ""),
+                "gitlab_username": chat.get("gitlab_username", ""),
+                "project_id": chat.get("gitlab_project_id", ""),
+            }
+        return {}
     except FileNotFoundError:
         return None
 
@@ -19,13 +21,15 @@ def get_user_by_telegram_chat(project_id: str, telegram_username: str):
     try:
         db = Database()
         tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", telegram_username).eq("gitlab_project_id", project_id).execute()
-        chat = tele_account.data[0]
-        return {
-            "id": chat.get("chat_id", ""),
-            "username": chat.get("username", ""),
-            "gitlab_username": chat.get("gitlab_username", ""),
-            "project_id": chat.get("gitlab_project_id", ""),
-        }
+        if len(tele_account.data):
+            chat = tele_account.data[0]
+            return {
+                "id": chat.get("chat_id", ""),
+                "username": chat.get("username", ""),
+                "gitlab_username": chat.get("gitlab_username", ""),
+                "project_id": chat.get("gitlab_project_id", ""),
+            }
+        return {}
     except FileNotFoundError:
         return None
 
@@ -44,6 +48,9 @@ def get_global_message(author_name, to, issue_id, issue_url, title, label):
 
 def get_assignee_task_message(author_name, to, issue_id, issue_url, title):
     return f"Hi {to}, {author_name} has assigned you [Task #{issue_id}]({issue_url}). We’re confident in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
+
+def get_self_assignee_task_message(to, issue_id, issue_url, title):
+    return f"Hi {to}, Thank you for taking on this assignment [Task #{issue_id}]({issue_url}). We’re confident in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
 
 def get_reopen_message(author_name, to, issue_id, issue_url, title):
     return f"Hi {to}, [Task #{issue_id}]({issue_url}) didn't pass the test, updated to *REOPEN* by {author_name}. Please check immediately \n\n---\n _{title}_"
