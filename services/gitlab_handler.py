@@ -47,7 +47,6 @@ async def issue_handler(**params):
     action_by_user  = payload.get("user", {})
 
     project_id = str(issue.project_id)
-
     if not any(item in config.get_labels(project_id=project_id) for item in issue.labels) and  issue.state == "opened":
         await _notify_to_dev(changes, issue, action_by_user)
 
@@ -85,6 +84,7 @@ async def _notify_to_dev(changes, issue, action_by_user):
     issue_url  = issue.web_url
     issue_id   = issue.iid
     author_name = action_by_user.get("name", "")
+    author_username = action_by_user.get("username", "")
     project_id = str(issue.project_id)
     
     notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
@@ -93,14 +93,22 @@ async def _notify_to_dev(changes, issue, action_by_user):
         username = changes.get("assignees", {}).get("current", []).pop().get("username", "")
         if username in notify_to:
             chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-            if chat :    
-                text = helper.get_assignee_task_message(
-                    author_name=author_name,
-                    to=username,
-                    issue_id=issue_id,
-                    issue_url=issue_url,
-                    title=title
-                )
+            if chat :
+                if author_username == username:                    
+                    text = helper.get_self_assignee_task_message(
+                        to=username,
+                        issue_id=issue_id,
+                        issue_url=issue_url,
+                        title=title
+                    )
+                else:
+                    text = helper.get_assignee_task_message(
+                        author_name=author_name,
+                        to=username,
+                        issue_id=issue_id,
+                        issue_url=issue_url,
+                        title=title
+                    )
                 await telegram_handler.send_text(chat.get("id"), text=text)
 
 
