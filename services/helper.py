@@ -1,33 +1,30 @@
 import json
-
-def get_config_project(id: str):
-    file = open(f"configs/projects/{id}.json")
-    return json.load(file)
+from core.db.database import Database
 
 def get_telegram_chat(project_id: str, gitlab_username: str):
     try:
-        file = open(f".chatids/{project_id}/{gitlab_username}.txt")
-        chat = file.read().split(":")
-
+        db = Database()
+        tele_account = db.fetch(table_name="telegram_account").select("*").eq("gitlab_username", gitlab_username).eq("gitlab_project_id", project_id).execute()
+        chat = tele_account.data[0]
         return {
-            "id": chat[0],
-            "username": chat[1],
-            "gitlab_username": chat[2],
-            "project_id": chat[3],
+            "id": chat.get("chat_id", ""),
+            "username": chat.get("username", ""),
+            "gitlab_username": chat.get("gitlab_username", ""),
+            "project_id": chat.get("gitlab_project_id", ""),
         }
     except FileNotFoundError:
         return None
 
 def get_user_by_telegram_chat(project_id: str, telegram_username: str):
     try:
-        file = open(f".chatids/{project_id}/{telegram_username}.txt")
-        chat = file.read().split(":")
-
+        db = Database()
+        tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", telegram_username).eq("gitlab_project_id", project_id).execute()
+        chat = tele_account.data[0]
         return {
-            "id": chat[0],
-            "username": chat[1],
-            "gitlab_username": chat[2],
-            "project_id": chat[3],
+            "id": chat.get("chat_id", ""),
+            "username": chat.get("username", ""),
+            "gitlab_username": chat.get("gitlab_username", ""),
+            "project_id": chat.get("gitlab_project_id", ""),
         }
     except FileNotFoundError:
         return None
