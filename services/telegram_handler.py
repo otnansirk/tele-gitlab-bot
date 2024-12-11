@@ -83,7 +83,7 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
         
         if username in telegram_usernames and gitlab_username in gitlab_usernames:
             db = Database()
-            tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+            tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).eq("project_id", project_id).execute()
             if not (len(tele_account.data)):
                 print(tele_account.count == None)
                 tele_account_data = {
