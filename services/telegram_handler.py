@@ -138,10 +138,13 @@ async def task_detail(chat_id: int, username: str, message: str):
             if username in tester_leads:
                 assignee_tester_msg = assignee_tester_msg+ username + ", "
         
-        last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"]).pop()
-        last_update_by = last_event.get("user", {}).get("username")
-        last_update_label_name = last_event.get("label", {}).get("name", "-")
-        last_update_at = datetime.datetime.fromisoformat(last_event.get("created_at", "")).strftime(date_format)
+        last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"])
+        last_update_by = ""
+        last_update_at = "-"
+        if len(last_event):
+            last_update_by = last_event.pop().get("user", {}).get("username")
+            last_update_label_name = last_event.pop().get("label", {}).get("name", "-")
+            last_update_at = last_update_label_name+"\n"+datetime.datetime.fromisoformat(last_event.pop().get("created_at", "")).strftime(date_format)
 
         reopen_events = [
             item.__dict__['_attrs'] for item in events 
@@ -195,7 +198,6 @@ async def task_detail(chat_id: int, username: str, message: str):
             msg_first_dev_done=first_dev_done_date,
             msg_last_update_by=last_update_by,
             msg_last_update_at=last_update_at,
-            msg_last_update_label_name=last_update_label_name,
             msg_closed=close_message,
             msg_total_reopen=total_reopen,
             task_title=issue_title
