@@ -140,7 +140,7 @@ async def task_detail(chat_id: int, username: str, message: str):
         
         last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"]).pop()
         last_update_by = last_event.get("user", {}).get("username")
-        last_update_label_name = last_event.get("label", {}).get("name", "")
+        last_update_label_name = last_event.get("label", {}).get("name", "-")
         last_update_at = datetime.datetime.fromisoformat(last_event.get("created_at", "")).strftime(date_format)
 
         reopen_events = [
