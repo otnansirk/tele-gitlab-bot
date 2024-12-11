@@ -105,6 +105,7 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
 
 
 async def task_detail(chat_id: int, username: str, message: str):
+    date_format = "%A, %d %b %Y %H:%M"
     
     pattern = r'^/taskd \d+:[a-zA-Z0-9]+$'
     if re.match(pattern, message):
@@ -136,7 +137,10 @@ async def task_detail(chat_id: int, username: str, message: str):
                 assignee_tester_msg = assignee_tester_msg+ username + ", "
             if username in tester_leads:
                 assignee_tester_msg = assignee_tester_msg+ username + ", "
-            
+        
+        last_event = sorted([item.__dict__['_attrs'] for item in events]).pop()
+        last_update_by = datetime.datetime.fromisoformat(last_event.get("created_at", "")).strftime(date_format)
+        last_update_at = datetime.datetime.fromisoformat(last_event.get("user", {}).get("username")).strftime(date_format)
 
         reopen_events = [
             item.__dict__['_attrs'] for item in events 
@@ -160,8 +164,6 @@ async def task_detail(chat_id: int, username: str, message: str):
             and item.__dict__['_attrs']["label"]["name"] == const_label.DEV_DONE
             and item.__dict__['_attrs']["user"]["username"] in dev_teams
         ]
-
-        date_format = "%A, %d %b %Y %H:%M"
 
         first_inprogress_date = "-"
         ordered_inprogress_events = sorted(inprogress_events, key=lambda item: item["created_at"])
@@ -190,6 +192,8 @@ async def task_detail(chat_id: int, username: str, message: str):
             assignee_tester_msg=assignee_tester_msg,
             msg_first_inprogress=first_inprogress_date,
             msg_first_dev_done=first_dev_done_date,
+            msg_last_update_by=last_update_by,
+            msg_last_update_at=last_update_at,
             msg_closed=close_message,
             msg_total_reopen=total_reopen,
             task_title=issue_title
