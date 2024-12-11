@@ -123,6 +123,7 @@ async def task_detail(chat_id: int, username: str, message: str):
 
         events = issue.resourcelabelevents.list(all=True)
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+        tester_leads = config.get_gitlab_username_by_role(project_id=project_id, role="tester_lead")
         dev_teams = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         
         assignee_dev_msg = ""
@@ -133,6 +134,8 @@ async def task_detail(chat_id: int, username: str, message: str):
                 assignee_dev_msg = assignee_dev_msg+ username + ", "
             if username in tester_teams:
                 assignee_tester_msg = assignee_tester_msg+ username + ", "
+            if username in tester_leads:
+                assignee_tester_msg = assignee_tester_msg+ username + ", "
             
 
         reopen_events = [
@@ -140,6 +143,7 @@ async def task_detail(chat_id: int, username: str, message: str):
             if item.__dict__['_attrs']["action"] == "add" 
             and item.__dict__['_attrs']["label"]["name"] == const_label.REOPEN
             and item.__dict__['_attrs']["user"]["username"] in tester_teams
+            and item.__dict__['_attrs']["user"]["username"] in tester_leads
         ]
         inprogress_events = [
             item.__dict__['_attrs'] for item in events 
