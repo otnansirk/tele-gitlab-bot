@@ -83,18 +83,18 @@ def get_taskd_message(
 [Task #{issue_id}]({issue_url}) : *{current_state.upper()}*
 
 Assign to :
-Dev    = {assignee_dev_msg}
+Dev     = {assignee_dev_msg}
 Tester = {assignee_tester_msg}
+
+Last Update by {msg_last_update_by}
+{msg_last_update_label_name}
+{msg_last_update_at}
 
 First In Progress
 {msg_first_inprogress}        
 
 First Dev Done
 {msg_first_dev_done}
-
-Last Update by {msg_last_update_by}
-{msg_last_update_label_name}
-{msg_last_update_at}
 
 Closed by {msg_closed}
 
