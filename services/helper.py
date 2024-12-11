@@ -74,6 +74,7 @@ def get_taskd_message(
     msg_first_dev_done: str,
     msg_last_update_by: str,
     msg_last_update_at: str,
+    msg_last_update_label_name: str,
     msg_closed: str,
     msg_total_reopen: str,
     task_title: str
@@ -92,6 +93,7 @@ First Dev Done
 {msg_first_dev_done}
 
 Last Update by {msg_last_update_by}
+{msg_last_update_label_name}
 {msg_last_update_at}
 
 Closed by {msg_closed}
