@@ -142,8 +142,11 @@ async def task_detail(chat_id: int, username: str, message: str):
             item.__dict__['_attrs'] for item in events 
             if item.__dict__['_attrs']["action"] == "add" 
             and item.__dict__['_attrs']["label"]["name"] == const_label.REOPEN
-            and item.__dict__['_attrs']["user"]["username"] in tester_teams
-            and item.__dict__['_attrs']["user"]["username"] in tester_leads
+            and (
+                item.__dict__['_attrs']["user"]["username"] in tester_teams
+                or 
+                item.__dict__['_attrs']["user"]["username"] in tester_leads
+            )
         ]
         inprogress_events = [
             item.__dict__['_attrs'] for item in events 
