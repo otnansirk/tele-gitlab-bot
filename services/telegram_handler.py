@@ -138,9 +138,9 @@ async def task_detail(chat_id: int, username: str, message: str):
             if username in tester_leads:
                 assignee_tester_msg = assignee_tester_msg+ username + ", "
         
-        last_event = sorted([item.__dict__['_attrs'] for item in events]).pop()
-        last_update_by = datetime.datetime.fromisoformat(last_event.get("created_at", "")).strftime(date_format)
-        last_update_at = datetime.datetime.fromisoformat(last_event.get("user", {}).get("username")).strftime(date_format)
+        last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"]).pop()
+        last_update_by = last_event.get("user", {}).get("username")
+        last_update_at = datetime.datetime.fromisoformat(last_event.get("created_at", "")).strftime(date_format)
 
         reopen_events = [
             item.__dict__['_attrs'] for item in events 
