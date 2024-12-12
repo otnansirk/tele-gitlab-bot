@@ -1,0 +1,13 @@
+services:
+
+  hanoman:
+    image: hanoman-bot
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: hanoman-api
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    restart: none
