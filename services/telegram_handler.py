@@ -15,7 +15,6 @@ from configs import config
 import datetime
 
 
-CHAT_ID_PATH =".chatids"
 token_key    = os.getenv("TELEGRAM_BOT_KEY")
 bot          = Bot(token_key)
 
