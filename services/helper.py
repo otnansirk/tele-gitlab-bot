@@ -103,3 +103,14 @@ Total Reopen
 ---
 _{task_title}_
 """
+
+def get_mytask_message(reopen, todo, inprogress, devdone, internal_testing):
+    return f"""
+The following is a detailed assignment that has been handed over to you:
+
+{reopen}
+{todo}
+{inprogress}
+{devdone}
+{internal_testing}
+    """

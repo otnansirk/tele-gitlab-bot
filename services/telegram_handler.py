@@ -2,6 +2,7 @@ import os
 import re
 import json
 
+import gitlab
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
 from consts import label as const_label, message as const_message
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -30,6 +31,13 @@ def _inline_keyboard_on_start():
     ]
     return InlineKeyboardMarkup(keyboard)
 
+async def send_text(chat_id, text: str):
+    await bot.send_message(
+        chat_id=chat_id,
+        parse_mode=ParseMode.MARKDOWN,
+        text=text
+    )
+
 async def updater(data: dict):
 
     if "callback_query" in data:
@@ -42,6 +50,7 @@ async def updater(data: dict):
 
         join_pattern = r'^/join .+$'
         task_detail_pattern = r'^/taskd .+$'
+        my_task_pattern = '/mytask'
 
         if message == "/start":
             await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
@@ -61,6 +70,11 @@ async def updater(data: dict):
                 chat_id=chat_id,
                 username=username,
                 message=message
+            )
+        elif my_task_pattern == message:
+            return await my_task(
+                chat_id=chat_id,
+                username=username
             )
         else:
             await bot.send_message(chat_id, "Sorry, I don't know.")
@@ -85,7 +99,6 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
             db = Database()
             tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).eq("gitlab_project_id", project_id).execute()
             if not (len(tele_account.data)):
-                print(tele_account.count == None)
                 tele_account_data = {
                     "chat_id": chat_id,
                     "username": username,
@@ -101,8 +114,6 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
     
     else:
         await bot.send_message(chat_id, "Format join must be : /join gitlab_project_id:gitlab_username")
-
-
 
 async def task_detail(chat_id: int, username: str, message: str):
     date_format = "%A, %d %b %Y %H:%M"
@@ -207,14 +218,6 @@ async def task_detail(chat_id: int, username: str, message: str):
     else:
         await bot.send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
 
-
-async def send_text(chat_id, text: str):
-    await bot.send_message(
-        chat_id=chat_id,
-        parse_mode=ParseMode.MARKDOWN,
-        text=text
-    )
-
 async def callback_query_hanlder(data: dict):
     query = data.get("callback_query", {})
     callback_data = data.get("callback_query", {}).get("data", "")
@@ -245,3 +248,64 @@ async def callback_query_hanlder(data: dict):
             parse_mode=ParseMode.MARKDOWN, 
             reply_markup=InlineKeyboardMarkup(markup)
         )
+
+async def my_task(chat_id: int, username: str):
+    db = Database()
+    tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+    for user in tele_account.data:
+        username = user.get("gitlab_username", "")
+        project_id = user.get("gitlab_project_id", "")
+        project = gitlab_handler.get_project(project_id)
+
+        msg_todo = ""
+        todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
+        todo_issues = [issue.__dict__['_attrs'] for issue in todo_issues if const_label.LABELS]
+        if len(todo_issues):
+            msg_todo = get_format_issue("TODO", todo_issues)
+
+        msg_inprogress = ""
+        inprogress_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.IN_PROGRESS])
+        inprogress_issues = [issue.__dict__['_attrs'] for issue in inprogress_issues]
+        if len(inprogress_issues):
+            msg_inprogress = get_format_issue(const_label.IN_PROGRESS, inprogress_issues)
+
+        msg_devdone = ""
+        devdone_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.DEV_DONE])
+        devdone_issues = [issue.__dict__['_attrs'] for issue in devdone_issues]
+        if len(devdone_issues):
+            msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
+
+        msg_internal_testing = ""
+        internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
+        internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
+        if len(internal_testing_issues):
+            msg_internal_testing = get_format_issue(const_label.INTERNAL_TESTING, internal_testing_issues)
+
+        msg_reopen = ""
+        reopen_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.REOPEN])
+        reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
+        if len(reopen_issues):
+            msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
+        
+        msg_detail = helper.get_mytask_message(
+            reopen=msg_reopen,
+            todo=msg_todo,
+            inprogress=msg_inprogress,
+            devdone=msg_devdone,
+            internal_testing=msg_internal_testing
+        )
+        await send_text(chat_id, f"{msg_detail}")
+    return msg_todo
+
+
+def get_format_issue(label, issues):
+    msg_todos = [f"*{label}* :"]
+    for issue in issues:
+        iid    = issue.get("iid", "")
+        title  = issue.get("title", "")
+        url    = issue.get("web_url", "")
+        label  = ",".join([label for label in issue.get("labels", [])])
+        msg    = f"- [Task #{iid}]({url}) {title} {label}"
+        msg_todos.append(msg)
+    msg_todo = "\n".join(msg_todos)+"\n"
+    return msg_todo
