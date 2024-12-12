@@ -17,11 +17,11 @@
    - You can add more than one project
 
 
-## Usage
+## RUN
 1. Create virtual env `python3 -m venv venv`
 2. Activate virtual env `source venv/bin/activate`
-3. pip install -r requirments.txt
-4. Rename `.env.example` to `.env` and adjust to yous need.
+3. pip install -r requirements.txt
+4. Rename `.env.example` to `.env` and adjust to your need.
 6. Run `fastapi dev main.py` for development and `uvicorn main:app --host 0.0.0.0` for production
 
 
