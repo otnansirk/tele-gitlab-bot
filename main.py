@@ -41,10 +41,11 @@ async def handle_webhook_gitlab(request: Request):
 @callback_route.post("/telegram")
 async def handle_webhook_telegram(request: Request):
     try:
+        print("ASEEEM")
         data = await request.json()
         return await telegram_handler.updater(data)
     except Exception as e:
-        print(e)
+        print(e, "ERROR APA SIH")
         return JSONResponse(
             status_code=400, 
             content={
