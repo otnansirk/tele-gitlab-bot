@@ -59,6 +59,8 @@ async def updater(data: dict):
                 text=const_message.HELP_MESSAGE
             )
         elif re.match(join_pattern, message):
+            print("JOIN")
+            print(message)
             await join_bot(
                 chat_id=chat_id,
                 username=username,
