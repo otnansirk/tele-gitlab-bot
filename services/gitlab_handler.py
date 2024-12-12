@@ -45,6 +45,8 @@ async def issue_handler(**params):
     changes = params.get("changes")
     action  = payload.get("object_attributes", {}).get("action")
     action_by_user  = payload.get("user", {})
+    if not changes:
+        return ""
 
     project_id = str(issue.project_id)
     if not any(item in config.get_labels(project_id=project_id) for item in issue.labels) and  issue.state == "opened":
