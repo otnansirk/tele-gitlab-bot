@@ -7,7 +7,7 @@ from telegram.constants import ParseMode
 from configs import config
 import consts.label
 
-def init_project(project_id: str):
+def get_project(project_id: str):
     url         = config.get(project_id=project_id).get("base_url", "")
     token       = config.get(project_id=project_id).get("token", "")
 
@@ -15,7 +15,7 @@ def init_project(project_id: str):
     return gl.projects.get(project_id)
 
 def get_issue(project_id: str, id: str):
-    project = init_project(project_id=project_id)
+    project = get_project(project_id=project_id)
     return project.issues.get(id=id)
 
 async def updater(data: dict):
@@ -23,7 +23,7 @@ async def updater(data: dict):
     issue_id    = data.get("object_attributes", {}).get("iid")
     changes     = data.get("changes", {})
 
-    project = init_project(project_id)
+    project = get_project(project_id)
     issue = get_issue(project_id, issue_id)
     if issue.type == "ISSUE":
         await issue_handler(
