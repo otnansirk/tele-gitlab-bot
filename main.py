@@ -25,6 +25,7 @@ async def root():
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
+        print("Request : ", data)
         await gitlab_handler.updater(data)
         return JSONResponse(
             status_code=200, 
