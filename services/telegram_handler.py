@@ -15,11 +15,13 @@ from configs import config
 import datetime
 
 
-token_key    = os.getenv("TELEGRAM_BOT_KEY")
-bot          = Bot(token_key)
+def bot():
+    token_key = os.getenv("TELEGRAM_BOT_KEY")
+    return Bot(token_key)
+
 
 async def set_webhook():
-    await bot.set_webhook(os.getenv("TELEGRAM_BOT_WEBHOOK"))
+    await bot().set_webhook(os.getenv("TELEGRAM_BOT_WEBHOOK"))
     print(f"Webhook set to {os.getenv('TELEGRAM_BOT_WEBHOOK')}")
 
 def _inline_keyboard_on_start():
@@ -31,7 +33,7 @@ def _inline_keyboard_on_start():
     return InlineKeyboardMarkup(keyboard)
 
 async def send_text(chat_id, text: str):
-    await bot.send_message(
+    await bot().send_message(
         chat_id=chat_id,
         parse_mode=ParseMode.MARKDOWN,
         text=text
@@ -53,7 +55,7 @@ async def updater(data: dict):
         my_task_pattern = '/mytask'
 
         if message == "/start":
-            await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
+            await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
         elif message == "/help":
             return await send_text(
                 chat_id=chat_id,
@@ -79,7 +81,7 @@ async def updater(data: dict):
                 username=username
             )
         else:
-            await bot.send_message(chat_id, "Sorry, I don't know.")
+            await bot().send_message(chat_id, "Sorry, I don't know.")
 
         return data
 
@@ -91,7 +93,7 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
         project_id = message.replace("/join ", "").split(":")[0]
         gitlab_username = message.replace("/join ", "").split(":")[1]
         if not config.get(project_id=project_id):
-            await bot.send_message(chat_id, f"Invalid project ID {project_id}")
+            await bot().send_message(chat_id, f"Invalid project ID {project_id}")
             return
         
         telegram_usernames = config.get_telegram_usernames(project_id=project_id)
@@ -109,13 +111,13 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
                 }
                 db.insert("telegram_account", tele_account_data)
 
-            await bot.send_message(chat_id, f"You have joined to project ID {project_id}")
+            await bot().send_message(chat_id, f"You have joined to project ID {project_id}")
             return
 
-        await bot.send_message(chat_id, f"You are not member of project ID {project_id}")
+        await bot().send_message(chat_id, f"You are not member of project ID {project_id}")
     
     else:
-        await bot.send_message(chat_id, "Format join must be : /join gitlab_project_id:gitlab_username")
+        await bot().send_message(chat_id, "Format join must be : /join gitlab_project_id:gitlab_username")
 
 async def task_detail(chat_id: int, username: str, message: str):
     date_format = "%A, %d %b %Y %H:%M"
@@ -218,7 +220,7 @@ async def task_detail(chat_id: int, username: str, message: str):
         await send_text(chat_id=chat_id, text=msg)
 
     else:
-        await bot.send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
+        await bot().send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
 
 async def callback_query_hanlder(data: dict):
     query = data.get("callback_query", {})
@@ -230,7 +232,7 @@ async def callback_query_hanlder(data: dict):
         markup = [
             [InlineKeyboardButton("🆘 Help me", callback_data="help")]
         ]
-        await bot.edit_message_text(
+        await bot().edit_message_text(
             chat_id=chat_id, 
             message_id=message_id, 
             text=msg, 
@@ -243,7 +245,7 @@ async def callback_query_hanlder(data: dict):
         markup = [
             [InlineKeyboardButton("⬅️ Back to home", callback_data="home")]
         ]
-        await bot.edit_message_text(
+        await bot().edit_message_text(
             chat_id=chat_id, 
             message_id=message_id, 
             text=msg, 
