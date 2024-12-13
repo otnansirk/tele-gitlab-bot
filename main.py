@@ -25,7 +25,17 @@ async def root():
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
-        return await gitlab_handler.updater(data)
+        await gitlab_handler.updater(data)
+        return JSONResponse(
+            status_code=200, 
+            content={
+                "data": {},
+                "meta": {
+                    "code": "success",
+                    "message": "Success"
+                }
+            }
+        )
     except Exception as e:
         print(e)
         return JSONResponse(
@@ -42,9 +52,18 @@ async def handle_webhook_gitlab(request: Request):
 @callback_route.post("/telegram")
 async def handle_webhook_telegram(request: Request):
     try:
-        print("ASEEEM")
         data = await request.json()
-        return await telegram_handler.updater(data)
+        await telegram_handler.updater(data)
+        return JSONResponse(
+            status_code=200, 
+            content={
+                "data": {},
+                "meta": {
+                    "code": "success",
+                    "message": "Success"
+                }
+            }
+        )
     except Exception as e:
         print(e, "ERROR APA SIH")
         return JSONResponse(
