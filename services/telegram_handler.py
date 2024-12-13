@@ -40,8 +40,6 @@ async def send_text(chat_id, text: str):
     )
 
 async def updater(data: dict):
-    await set_webhook()
-
     if "callback_query" in data:
         await callback_query_hanlder(data)
 
