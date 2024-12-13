@@ -10,9 +10,11 @@ import consts.label
 def get_project(project_id: str):
     url         = config.get(project_id=project_id).get("base_url", "")
     token       = config.get(project_id=project_id).get("token", "")
-
-    gl = gitlab.Gitlab(url=url, private_token=token)
-    return gl.projects.get(project_id)
+    if token:
+        gl = gitlab.Gitlab(url=url, private_token=token)
+        return gl.projects.get(project_id)
+    else:
+        return False
 
 def get_issue(project_id: str, id: str):
     project = get_project(project_id=project_id)
