@@ -258,45 +258,45 @@ async def my_task(chat_id: int, username: str):
         username = user.get("gitlab_username", "")
         project_id = user.get("gitlab_project_id", "")
         project = gitlab_handler.get_project(project_id)
+        if project:
+            msg_todo = ""
+            todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
+            todo_issues = [issue.__dict__['_attrs'] for issue in todo_issues if const_label.LABELS]
+            if len(todo_issues):
+                msg_todo = get_format_issue("TODO", todo_issues)
 
-        msg_todo = ""
-        todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
-        todo_issues = [issue.__dict__['_attrs'] for issue in todo_issues if const_label.LABELS]
-        if len(todo_issues):
-            msg_todo = get_format_issue("TODO", todo_issues)
+            msg_inprogress = ""
+            inprogress_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.IN_PROGRESS])
+            inprogress_issues = [issue.__dict__['_attrs'] for issue in inprogress_issues]
+            if len(inprogress_issues):
+                msg_inprogress = get_format_issue(const_label.IN_PROGRESS, inprogress_issues)
 
-        msg_inprogress = ""
-        inprogress_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.IN_PROGRESS])
-        inprogress_issues = [issue.__dict__['_attrs'] for issue in inprogress_issues]
-        if len(inprogress_issues):
-            msg_inprogress = get_format_issue(const_label.IN_PROGRESS, inprogress_issues)
+            msg_devdone = ""
+            devdone_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.DEV_DONE])
+            devdone_issues = [issue.__dict__['_attrs'] for issue in devdone_issues]
+            if len(devdone_issues):
+                msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
 
-        msg_devdone = ""
-        devdone_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.DEV_DONE])
-        devdone_issues = [issue.__dict__['_attrs'] for issue in devdone_issues]
-        if len(devdone_issues):
-            msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
+            msg_internal_testing = ""
+            internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
+            internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
+            if len(internal_testing_issues):
+                msg_internal_testing = get_format_issue(const_label.INTERNAL_TESTING, internal_testing_issues)
 
-        msg_internal_testing = ""
-        internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
-        internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
-        if len(internal_testing_issues):
-            msg_internal_testing = get_format_issue(const_label.INTERNAL_TESTING, internal_testing_issues)
-
-        msg_reopen = ""
-        reopen_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.REOPEN])
-        reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
-        if len(reopen_issues):
-            msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
-        
-        msg_detail = helper.get_mytask_message(
-            reopen=msg_reopen,
-            todo=msg_todo,
-            inprogress=msg_inprogress,
-            devdone=msg_devdone,
-            internal_testing=msg_internal_testing
-        )
-        await send_text(chat_id, f"{msg_detail}")
+            msg_reopen = ""
+            reopen_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.REOPEN])
+            reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
+            if len(reopen_issues):
+                msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
+            
+            msg_detail = helper.get_mytask_message(
+                reopen=msg_reopen,
+                todo=msg_todo,
+                inprogress=msg_inprogress,
+                devdone=msg_devdone,
+                internal_testing=msg_internal_testing
+            )
+            await send_text(chat_id, f"{msg_detail}")
     return msg_todo
 
 

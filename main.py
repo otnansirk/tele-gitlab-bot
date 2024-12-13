@@ -53,9 +53,7 @@ async def handle_webhook_gitlab(request: Request):
 async def handle_webhook_telegram(request: Request):
     try:
         data = await request.json()
-        print("Payload received from Telegram:", data)  # Log payload
-
-        # await telegram_handler.updater(data)
+        await telegram_handler.updater(data)
         return JSONResponse(
             status_code=200, 
             content={
