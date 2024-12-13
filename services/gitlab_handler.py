@@ -8,6 +8,8 @@ from configs import config
 import consts.label
 
 def get_project(project_id: str):
+    await telegram_handler.set_webhook()
+
     url         = config.get(project_id=project_id).get("base_url", "")
     token       = config.get(project_id=project_id).get("token", "")
 

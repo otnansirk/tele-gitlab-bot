@@ -38,6 +38,7 @@ async def send_text(chat_id, text: str):
     )
 
 async def updater(data: dict):
+    await set_webhook()
 
     if "callback_query" in data:
         await callback_query_hanlder(data)
@@ -52,7 +53,6 @@ async def updater(data: dict):
         my_task_pattern = '/mytask'
 
         if message == "/start":
-            await set_webhook()
             await bot.send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
         elif message == "/help":
             return await send_text(
