@@ -313,8 +313,8 @@ def get_format_issue(label, issues):
         labels  = ",".join([label for label in issue.get("labels", [])])
         msg    = f"""
         - [Task #{iid}]({url}) {title} 
-          Labels : _*{labels}_
+          Labels : _{labels}_
         """
         msg_todos.append(msg)
-    msg_todo = "\n".join(msg_todos)+"\n"
+    msg_todo = join(msg_todos)+"\n"
     return msg_todo
