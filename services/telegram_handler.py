@@ -312,9 +312,9 @@ def get_format_issue(label, issues):
         url    = issue.get("web_url", "")
         labels  = ",".join([label for label in issue.get("labels", [])])
         msg    = f"""
-        - [Task #{iid}]({url}) {title} 
-          Labels : _{labels}_
-        """
+- [Task #{iid}]({url}) {title} 
+  Labels : _{labels}_
+"""
         msg_todos.append(msg)
     msg_todo = join(msg_todos)+"\n"
     return msg_todo
