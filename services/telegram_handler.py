@@ -261,7 +261,11 @@ async def my_task(chat_id: int, username: str):
         if project:
             msg_todo = ""
             todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
-            todo_issues = [issue.__dict__['_attrs'] for issue in todo_issues if const_label.LABELS]
+            todo_issues = [
+                issue.__dict__['_attrs']
+                for issue in todo_issues
+                if not any(label in const_label.LABELS for label in issue.labels)
+            ]
             if len(todo_issues):
                 msg_todo = get_format_issue("TODO", todo_issues)
 
@@ -306,8 +310,11 @@ def get_format_issue(label, issues):
         iid    = issue.get("iid", "")
         title  = issue.get("title", "")
         url    = issue.get("web_url", "")
-        label  = ",".join([label for label in issue.get("labels", [])])
-        msg    = f"- [Task #{iid}]({url}) {title} {label}"
+        labels  = ",".join([label for label in issue.get("labels", [])])
+        msg    = f"""
+        - [Task #{iid}]({url}) {title} 
+          Labels : _*{labels}_
+        """
         msg_todos.append(msg)
     msg_todo = "\n".join(msg_todos)+"\n"
     return msg_todo
