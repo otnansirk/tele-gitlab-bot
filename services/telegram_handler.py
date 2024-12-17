@@ -326,6 +326,7 @@ async def my_task(chat_id: int, username: str):
 
 
             msg_detail = helper.get_mytask_message(
+                project=project,
                 reopen=msg_reopen,
                 todo=msg_todo,
                 inprogress=msg_inprogress,

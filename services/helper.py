@@ -81,7 +81,7 @@ def get_taskd_message(
     labels = ", ".join(issue.labels)
 
     return f"""
-{project.name} : [#{project.id}]({project.web_url})
+{project.name} : [ID#{project.id}]({project.web_url})
 [Task #{issue.iid}]({issue.web_url}) : *{issue.state.upper()}*
 _{labels.capitalize()}_
 
@@ -111,9 +111,10 @@ Total Reopen
 _{task_title}_
 """
 
-def get_mytask_message(reopen, todo, inprogress, devdone, internal_testing, merge_request):
+def get_mytask_message(project, reopen, todo, inprogress, devdone, internal_testing, merge_request):
     return f"""
-The following is a detailed assignment that has been handed over to you:
+{project.name} : [ID#{project.id}]({project.web_url})
+The following are the details of the assignments that have been handed over to you:
 
 {reopen}{todo}{inprogress}{devdone}{internal_testing}{merge_request}
     """
