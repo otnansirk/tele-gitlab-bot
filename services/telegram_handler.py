@@ -124,6 +124,8 @@ async def task_detail(chat_id: int, username: str, message: str):
     if re.match(pattern, message):
         db = Database()
         tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+        await send_text(chat_id=chat_id, text="Calculating...")
+
         for user in tele_account.data:
             username = user.get("gitlab_username", "")
             project_id = user.get("gitlab_project_id", "")
