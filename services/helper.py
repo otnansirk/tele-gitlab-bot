@@ -47,10 +47,10 @@ def get_global_message(author_name, to, issue_id, issue_url, title, label):
     return f"Hi {to}, [Task #{issue_id}]({issue_url}) updated to *{label.upper()}* by {author_name}. \n\n---\n _{title}_"
 
 def get_assignee_task_message(author_name, to, issue_id, issue_url, title):
-    return f"Hi {to}, {author_name} has assigned you [Task #{issue_id}]({issue_url}). We’re confident in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
+    return f"Hi {to}, {author_name} has assigned you [Task #{issue_id}]({issue_url}). We’re believe in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
 
 def get_self_assignee_task_message(to, issue_id, issue_url, title):
-    return f"Hi {to}, Thank you for taking on this assignment [Task #{issue_id}]({issue_url}). We’re confident in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
+    return f"Hi {to}, Thank you for taking on this assignment [Task #{issue_id}]({issue_url}). We’re believe in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
 
 def get_reopen_message(author_name, to, issue_id, issue_url, title):
     return f"Hi {to}, [Task #{issue_id}]({issue_url}) didn't pass the test, updated to *REOPEN* by {author_name}. Please check immediately \n\n---\n _{title}_"
