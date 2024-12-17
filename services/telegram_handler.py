@@ -70,7 +70,6 @@ async def updater(data: dict):
         elif re.match(task_detail_pattern, message):
             return await task_detail(
                 chat_id=chat_id,
-                username=username,
                 message=message
             )
         elif my_task_pattern == message:
@@ -117,108 +116,112 @@ async def join_bot(chat_id: int, username: str, message: str) -> None:
     else:
         await bot().send_message(chat_id, "Format join must be : /join gitlab_project_id:gitlab_username")
 
-async def task_detail(chat_id: int, username: str, message: str):
+async def task_detail(chat_id: int, message: str):
     date_format = "%A, %d %b %Y %H:%M"
-    
+
     pattern = r'^/taskd \d+:[a-zA-Z0-9]+$'
     if re.match(pattern, message):
         project_id = message.replace("/taskd ", "").split(":")[0]
         issue_id = message.replace("/taskd ", "").split(":")[1]
+        try:
+            issue = gitlab_handler.get_issue(project_id, issue_id)
+            issue_title = issue.title
+            issue_url = issue.web_url
+            issue_id = issue.iid
+            current_state = issue.state
+
+            issue_dict = json.loads(issue.to_json())
+            closed_by = issue_dict["closed_by"]
+            closed_at = issue_dict["closed_at"]
+
+            events = issue.resourcelabelevents.list(all=True)
+            tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
+            tester_leads = config.get_gitlab_username_by_role(project_id=project_id, role="tester_lead")
+            dev_teams = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
             
-        issue = gitlab_handler.get_issue(project_id, issue_id)
-        issue_title = issue.title
-        issue_url = issue.web_url
-        issue_id = issue.iid
-        current_state = issue.state
+            assignee_dev_msg = ""
+            assignee_tester_msg = ""
+            current_assignee_usernames = [assign["username"] for assign in issue.assignees]
+            for username in current_assignee_usernames:
+                if username in dev_teams:
+                    assignee_dev_msg = assignee_dev_msg+ username + ", "
+                if username in tester_teams:
+                    assignee_tester_msg = assignee_tester_msg+ username + ", "
+                if username in tester_leads:
+                    assignee_tester_msg = assignee_tester_msg+ username + ", "
+            
+            last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"])
+            last_update_by = ""
+            last_update_at = "-"
+            if len(last_event):
+                last_update_by = last_event.pop().get("user", {}).get("username")
+                last_update_label_name = last_event.pop().get("label", {}).get("name", "-")
+                last_update_at = last_update_label_name+"\n"+datetime.datetime.fromisoformat(last_event.pop().get("created_at", "")).strftime(date_format)
 
-        issue_dict = json.loads(issue.to_json())
-        closed_by = issue_dict["closed_by"]
-        closed_at = issue_dict["closed_at"]
+            reopen_events = [
+                item.__dict__['_attrs'] for item in events 
+                if item.__dict__['_attrs']["action"] == "add" 
+                and item.__dict__['_attrs']["label"]["name"] == const_label.REOPEN
+                and (
+                    item.__dict__['_attrs']["user"]["username"] in tester_teams
+                    or 
+                    item.__dict__['_attrs']["user"]["username"] in tester_leads
+                )
+            ]
+            inprogress_events = [
+                item.__dict__['_attrs'] for item in events 
+                if item.__dict__['_attrs']["action"] == "add" 
+                and item.__dict__['_attrs']["label"]["name"] == const_label.IN_PROGRESS
+                and item.__dict__['_attrs']["user"]["username"] in dev_teams
+            ]
+            dev_done_events = [
+                item.__dict__['_attrs'] for item in events 
+                if item.__dict__['_attrs']["action"] == "add" 
+                and item.__dict__['_attrs']["label"]["name"] == const_label.DEV_DONE
+                and item.__dict__['_attrs']["user"]["username"] in dev_teams
+            ]
 
-        events = issue.resourcelabelevents.list(all=True)
-        tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
-        tester_leads = config.get_gitlab_username_by_role(project_id=project_id, role="tester_lead")
-        dev_teams = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
-        
-        assignee_dev_msg = ""
-        assignee_tester_msg = ""
-        current_assignee_usernames = [assign["username"] for assign in issue.assignees]
-        for username in current_assignee_usernames:
-            if username in dev_teams:
-                assignee_dev_msg = assignee_dev_msg+ username + ", "
-            if username in tester_teams:
-                assignee_tester_msg = assignee_tester_msg+ username + ", "
-            if username in tester_leads:
-                assignee_tester_msg = assignee_tester_msg+ username + ", "
-        
-        last_event = sorted([item.__dict__['_attrs'] for item in events],  key=lambda item: item["created_at"])
-        last_update_by = ""
-        last_update_at = "-"
-        if len(last_event):
-            last_update_by = last_event.pop().get("user", {}).get("username")
-            last_update_label_name = last_event.pop().get("label", {}).get("name", "-")
-            last_update_at = last_update_label_name+"\n"+datetime.datetime.fromisoformat(last_event.pop().get("created_at", "")).strftime(date_format)
+            first_inprogress_date = "-"
+            ordered_inprogress_events = sorted(inprogress_events, key=lambda item: item["created_at"])
+            if len(ordered_inprogress_events):
+                first_inprogress = ordered_inprogress_events[0]
+                first_inprogress_date = datetime.datetime.fromisoformat(first_inprogress.get("created_at", "")).strftime(date_format)
 
-        reopen_events = [
-            item.__dict__['_attrs'] for item in events 
-            if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == const_label.REOPEN
-            and (
-                item.__dict__['_attrs']["user"]["username"] in tester_teams
-                or 
-                item.__dict__['_attrs']["user"]["username"] in tester_leads
+            first_dev_done_date = "-"
+            ordered_dev_done_events = sorted(dev_done_events, key=lambda item: item["created_at"])
+            if len(ordered_dev_done_events):
+                first_dev_done = ordered_dev_done_events[0]
+                first_dev_done_date = datetime.datetime.fromisoformat(first_dev_done.get("created_at", "")).strftime(date_format)
+
+            close_message = "-"
+            if closed_by:
+                closed_date = datetime.datetime.fromisoformat(closed_at).strftime(date_format)
+                close_message = f"{closed_by.get('name', '')} \n*{closed_date}*"
+
+            total_reopen = len(reopen_events)
+
+            msg = helper.get_taskd_message(
+                issue_id=issue_id,
+                issue_url=issue_url,
+                current_state=current_state,
+                assignee_dev_msg=assignee_dev_msg,
+                assignee_tester_msg=assignee_tester_msg,
+                msg_first_inprogress=first_inprogress_date,
+                msg_first_dev_done=first_dev_done_date,
+                msg_last_update_by=last_update_by,
+                msg_last_update_at=last_update_at,
+                msg_closed=close_message,
+                msg_total_reopen=total_reopen,
+                task_title=issue_title
             )
-        ]
-        inprogress_events = [
-            item.__dict__['_attrs'] for item in events 
-            if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == const_label.IN_PROGRESS
-            and item.__dict__['_attrs']["user"]["username"] in dev_teams
-        ]
-        dev_done_events = [
-            item.__dict__['_attrs'] for item in events 
-            if item.__dict__['_attrs']["action"] == "add" 
-            and item.__dict__['_attrs']["label"]["name"] == const_label.DEV_DONE
-            and item.__dict__['_attrs']["user"]["username"] in dev_teams
-        ]
+            await send_text(chat_id=chat_id, text=msg)
 
-        first_inprogress_date = "-"
-        ordered_inprogress_events = sorted(inprogress_events, key=lambda item: item["created_at"])
-        if len(ordered_inprogress_events):
-            first_inprogress = ordered_inprogress_events[0]
-            first_inprogress_date = datetime.datetime.fromisoformat(first_inprogress.get("created_at", "")).strftime(date_format)
-
-        first_dev_done_date = "-"
-        ordered_dev_done_events = sorted(dev_done_events, key=lambda item: item["created_at"])
-        if len(ordered_dev_done_events):
-            first_dev_done = ordered_dev_done_events[0]
-            first_dev_done_date = datetime.datetime.fromisoformat(first_dev_done.get("created_at", "")).strftime(date_format)
-
-        close_message = "-"
-        if closed_by:
-            closed_date = datetime.datetime.fromisoformat(closed_at).strftime(date_format)
-            close_message = f"{closed_by.get('name', '')} \n*{closed_date}*"
-
-        total_reopen = len(reopen_events)
-
-        msg = helper.get_taskd_message(
-            issue_id=issue_id,
-            issue_url=issue_url,
-            current_state=current_state,
-            assignee_dev_msg=assignee_dev_msg,
-            assignee_tester_msg=assignee_tester_msg,
-            msg_first_inprogress=first_inprogress_date,
-            msg_first_dev_done=first_dev_done_date,
-            msg_last_update_by=last_update_by,
-            msg_last_update_at=last_update_at,
-            msg_closed=close_message,
-            msg_total_reopen=total_reopen,
-            task_title=issue_title
-        )
-        await send_text(chat_id=chat_id, text=msg)
-
-    else:
-        await bot().send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
+        except Exception:
+            print("issue not found : ", issue_id)
+            return {"issue not found"}
+        
+        else:
+            await bot().send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
 
 async def callback_query_hanlder(data: dict):
     query = data.get("callback_query", {})
