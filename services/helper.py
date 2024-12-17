@@ -65,21 +65,25 @@ def get_closed_message(author_name, to, issue_id, issue_url, title, mr_msg: list
     return f"Hi {to}, [Task #{issue_id}]({issue_url}) updated to *CLOSED* by {author_name}. Please check immediately \n\n {mr_msg} \n\n ---\n _{title}_"
     
 def get_taskd_message(
-    issue_id: str,
-    issue_url: str,
-    current_state: str,
+    project,
+    issue,
     assignee_dev_msg: str,
     assignee_tester_msg: str,
     msg_first_inprogress: str,
     msg_first_dev_done: str,
+    msg_first_internal_testing: str,
     msg_last_update_by: str,
     msg_last_update_at: str,
     msg_closed: str,
     msg_total_reopen: str,
     task_title: str
 ):
+    labels = ", ".join(issue.labels)
+
     return f"""
-[Task #{issue_id}]({issue_url}) : *{current_state.upper()}*
+{project.name} : [#{project.id}]({project.web_url})
+[Task #{issue.iid}]({issue.web_url}) : *{issue.state.upper()}*
+_{labels.capitalize()}_
 
 Assign to :
 Dev     = {assignee_dev_msg}
@@ -93,6 +97,9 @@ Tester = {assignee_tester_msg}
 
 *First Dev Done*
 {msg_first_dev_done}
+
+*First Internal Testing*
+{msg_first_internal_testing}
 
 *Closed* by {msg_closed}
 
