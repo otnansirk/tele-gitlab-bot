@@ -292,13 +292,22 @@ async def my_task(chat_id: int, username: str):
             reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
             if len(reopen_issues):
                 msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
-            
+
+            msg_merge_request = ""
+            roles = config.get_role_by_gitlab_username(project_id=project_id, username=username)
+            opened_mr = project.mergerequests.list(reviewer_username=username, state=const_label.OPENED)
+            opened_mr =  [item.__dict__['_attrs'] for item in opened_mr]
+            if "dev_lead" in roles:
+                msg_merge_request = get_format_mr(project_id=project_id, merge_requests=opened_mr)
+
+
             msg_detail = helper.get_mytask_message(
                 reopen=msg_reopen,
                 todo=msg_todo,
                 inprogress=msg_inprogress,
                 devdone=msg_devdone,
-                internal_testing=msg_internal_testing
+                internal_testing=msg_internal_testing,
+                merge_request=msg_merge_request
             )
             await send_text(chat_id, f"{msg_detail}")
     return msg_todo
@@ -313,8 +322,28 @@ def get_format_issue(label, issues):
         labels  = ",".join([label for label in issue.get("labels", [])])
         msg    = f"""
 - [Task #{iid}]({url}) {title} 
-  Labels : _{labels}_
+   Labels : _{labels}_
 """
         msg_todos.append(msg)
-    msg_todo = join(msg_todos)+"\n"
+    msg_todo = "".join(msg_todos)+"\n"
     return msg_todo
+
+def get_format_mr(project_id, merge_requests):
+    msg_mr = ["*Merge Request* :"]
+    for mr in merge_requests:
+        iid    = mr.get("iid", "")
+        title  = mr.get("title", "")
+        url    = mr.get("web_url", "")
+        issue_ids = title.split("#")
+        if len(issue_ids) > 1:
+            issue_id  = issue_ids[1]
+            issue     = gitlab_handler.get_issue(project_id, id=issue_id)
+            issue_url = issue.web_url
+
+            mr_title_and_issue_id = issue_ids[0] + f"[Task#{issue_id}]({issue_url})"
+            
+            msg = f"- [MR #{iid}]({url}) {mr_title_and_issue_id}"
+            msg_mr.append(msg)
+
+    msg_mr = "\n".join(msg_mr)+"\n"
+    return msg_mr
