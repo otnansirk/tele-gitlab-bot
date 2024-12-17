@@ -219,9 +219,9 @@ async def task_detail(chat_id: int, message: str):
         except Exception:
             print("issue not found : ", issue_id)
             return {"issue not found"}
-        
-        else:
-            await bot().send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
+
+    else:
+        await bot().send_message(chat_id, "Format taskd must be : /taskd gitlab_project_id:gitlab_issue_id")
 
 async def callback_query_hanlder(data: dict):
     query = data.get("callback_query", {})
