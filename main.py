@@ -25,7 +25,7 @@ async def root():
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
-        print("Request : ", data)
+        print("Request Gitlab : ", data)
         await gitlab_handler.updater(data)
         return JSONResponse(
             status_code=200, 
@@ -54,6 +54,7 @@ async def handle_webhook_gitlab(request: Request):
 async def handle_webhook_telegram(request: Request):
     try:
         data = await request.json()
+        print("Request Telegram : ", data)
         await telegram_handler.updater(data)
         return JSONResponse(
             status_code=200, 
