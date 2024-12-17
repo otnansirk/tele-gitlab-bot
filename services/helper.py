@@ -86,7 +86,7 @@ def get_taskd_message(
 _{labels.capitalize()}_
 
 Assign to :
-Dev     = {assignee_dev_msg}
+Dev      = {assignee_dev_msg}
 Tester = {assignee_tester_msg}
 
 *Last Update* by {msg_last_update_by}
@@ -114,6 +114,7 @@ _{task_title}_
 def get_mytask_message(project, reopen, todo, inprogress, devdone, internal_testing, merge_request):
     return f"""
 {project.name} : [ID#{project.id}]({project.web_url})
+
 The following are the details of the assignments that have been handed over to you:
 
 {reopen}{todo}{inprogress}{devdone}{internal_testing}{merge_request}
