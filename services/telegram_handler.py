@@ -279,6 +279,7 @@ async def my_task(chat_id: int, username: str):
         username = user.get("gitlab_username", "")
         project_id = user.get("gitlab_project_id", "")
         project = gitlab_handler.get_project(project_id)
+        send_text(chat_id=chat_id, text="Calculating...")
         if project:
             msg_todo = ""
             todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
