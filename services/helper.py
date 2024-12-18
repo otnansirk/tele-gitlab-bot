@@ -52,6 +52,9 @@ def get_assignee_task_message(author_name, to, issue_id, issue_url, title):
 def get_self_assignee_task_message(to, issue_id, issue_url, title):
     return f"Hi {to}, Thank you for taking on this assignment [Task #{issue_id}]({issue_url}). We’re believe in your ability to complete it. Let us know if you need support. Thanks! \n\n---\n _{title}_"
 
+def get_update_desc_task_message(to, issue_id, issue_url, title):
+    return f"Hi {to}, There is an update to the issue description regarding [Task #{issue_id}]({issue_url}). Please double check to ensure it is in accordance with the latest updates.Thank you for taking on this assignment \n\n---\n _{title}_"
+
 def get_reopen_message(author_name, to, issue_id, issue_url, title):
     return f"Hi {to}, [Task #{issue_id}]({issue_url}) didn't pass the test, updated to *REOPEN* by {author_name}. Please check immediately \n\n---\n _{title}_"
 
