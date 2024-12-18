@@ -25,7 +25,7 @@ deploy_job:
     - echo "$SSH_PRIVATE_KEY" > private_key
     - chmod 600 private_key
     - ssh -i private_key -o StrictHostKeyChecking=no $SSH_USER@$SSH_REMOTE -p $SSH_PORT \
-      "cd '$DEPLOY_DIR' \
+      "cd '/home/batutah/docker/hanoman-bot' \
       && git pull origin origawa \
       && docker compose up --build -d \
       && sleep 5 && netstat -tuln | grep ':6666'"
