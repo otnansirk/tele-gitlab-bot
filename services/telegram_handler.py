@@ -132,7 +132,7 @@ async def task_detail(chat_id: int, username: str, message: str):
             issue_id = message.replace("/taskd ", "").split(":")[0]
 
             try:
-                issue        = gitlab_handler.get_issue(project_id, issue_id)
+                issue        = gitlab_handler.get_issue(project_id=project_id, id=issue_id)
                 issue_title  = issue.title
                 issue_id     = issue.iid
                 issue_dict = json.loads(issue.to_json())
@@ -161,9 +161,10 @@ async def task_detail(chat_id: int, username: str, message: str):
                 last_update_by = ""
                 last_update_at = "-"
                 if len(last_event):
-                    last_update_by = last_event.pop().get("user", {}).get("username")
-                    last_update_label_name = last_event.pop().get("label", {}).get("name", "-")
-                    last_update_at = last_update_label_name+"\n"+datetime.datetime.fromisoformat(last_event.pop().get("created_at", "")).strftime(date_format)
+                    last_event_dict = last_event.pop()
+                    last_update_by  = last_event_dict.get("user", {}).get("username")
+                    last_update_label_name = last_event_dict.get("label", {}).get("name", "-")
+                    last_update_at = last_update_label_name+"\n"+datetime.datetime.fromisoformat(last_event_dict.get("created_at", "")).strftime(date_format)
 
                 reopen_events = [
                     item.__dict__['_attrs'] for item in events 
@@ -236,8 +237,9 @@ async def task_detail(chat_id: int, username: str, message: str):
                 )
                 await send_text(chat_id=chat_id, text=msg)
 
-            except Exception:
-                print("issue not found : ", issue_id)
+            except Exception as e:
+                print("task_detail", e)
+                await send_text(chat_id, f"Failed to calculate task detail {issue_id}")
                 return {"issue not found"}
 
     else:
