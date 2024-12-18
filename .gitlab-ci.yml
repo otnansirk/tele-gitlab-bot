@@ -17,18 +17,16 @@ variables:
   GITLAB_ADVANCED_SAST_ENABLED: 'true'
 
 # DEPLOY
-deploy_job:
+deploy hanoman:
   stage: deploy
-  image: alpine:latest
+  before_script:
+    - eval $(ssh-agent -s) && ssh-add ~/.ssh/gitlab-runner
   script:
-    - apk add --no-cache openssh-client
-    - echo "$SSH_PRIVATE_KEY" > private_key
-    - chmod 600 private_key
-    - ssh -i private_key -o StrictHostKeyChecking=no $SSH_USER@$SSH_REMOTE -p $SSH_PORT \
-      "cd '/home/batutah/docker/hanoman-bot' \
-      && git pull origin origawa \
-      && docker compose up --build -d \
-      && sleep 5 && netstat -tuln | grep ':6666'"
+    - cd /home/gitlab-runner/ai-care-playbooks
+    - ansible-playbook 00-deploy-hanoman-bot.yml
+  tags:
+    - getih
   when: manual
+  dependencies: []
   rules:
     - if: $CI_COMMIT_BRANCH
