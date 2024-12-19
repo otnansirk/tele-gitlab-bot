@@ -1,0 +1,32 @@
+stages:
+  - test
+  - deploy
+
+sast: # override sast setting
+  variables:
+    SAST_EXCLUDED_ANALYZERS: brakeman, eslint, flawfinder, gosec, kubesec, nodejs-scan,
+      phpcs-security-audit, pmd-apex, security-code-scan, sobelow, spotbugs
+  stage: test
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+variables:
+  GITLAB_ADVANCED_SAST_ENABLED: 'true'
+
+# DEPLOY
+deploy hanoman:
+  stage: deploy
+  before_script:
+    - eval $(ssh-agent -s) && ssh-add ~/.ssh/gitlab-runner
+  script:
+    - cd /home/gitlab-runner/ai-care-playbooks
+    - ansible-playbook 00-deploy-hanoman-bot.yml
+  tags:
+    - getih
+  when: manual
+  dependencies: []
+  rules:
+    - if: $CI_COMMIT_BRANCH
