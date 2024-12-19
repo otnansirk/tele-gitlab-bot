@@ -363,15 +363,18 @@ def get_format_mr(project_id, merge_requests):
         iid    = mr.get("iid", "")
         title  = mr.get("title", "")
         url    = mr.get("web_url", "")
-        issue_ids = title.split("#")
-        if len(issue_ids) > 1:
-            issue_id  = issue_ids[1]
+        issue_title_split = title.split("#")
+        if len(issue_title_split) > 1:
+            mr_title  = issue_title_split[0]
+            issue_id  = issue_title_split[1]
             issue     = gitlab_handler.get_issue(project_id, id=issue_id)
             issue_url = issue.web_url
+            issue_state = issue.state
+            issue_title = issue.state
 
-            mr_title_and_issue_id = issue_ids[0] + f"[Task#{issue_id}]({issue_url})"
+            issue_detail = f"{issue_title} [Task#{issue_id}]({issue_url}) | {issue_state.upper()}"
             
-            msg = f"- [MR #{iid}]({url}) {mr_title_and_issue_id}"
+            msg = f"""- [MR #{iid}]({url}) {mr_title} {issue_detail}"""
             msg_mr.append(msg)
 
     msg_mr = "\n".join(msg_mr)+"\n"
