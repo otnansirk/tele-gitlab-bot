@@ -60,8 +60,6 @@ async def updater(data: dict):
                 text=const_message.HELP_MESSAGE
             )
         elif re.match(join_pattern, message):
-            print("JOIN")
-            print(message)
             await join_bot(
                 chat_id=chat_id,
                 username=username,
@@ -85,7 +83,7 @@ async def updater(data: dict):
 
 
 async def join_bot(chat_id: int, username: str, message: str) -> None:
-    pattern = r'^/join \d+:[a-zA-Z0-9]+$'
+    pattern = r'^/join \d+:.*$'
     if re.match(pattern, message):
 
         project_id = message.replace("/join ", "").split(":")[0]
@@ -124,6 +122,10 @@ async def task_detail(chat_id: int, username: str, message: str):
     if re.match(pattern, message):
         db = Database()
         tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+        if not len(tele_account.data):
+            await send_text(chat_id=chat_id, text="You are not member")
+            return {"NO"}
+        
         await send_text(chat_id=chat_id, text="Calculating...")
 
         for user in tele_account.data:
@@ -279,8 +281,11 @@ async def callback_query_hanlder(data: dict):
 async def my_task(chat_id: int, username: str):
     db = Database()
     tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+    if not len(tele_account.data):
+        await send_text(chat_id=chat_id, text="You are not member")
+        return {"NO"}
+
     await send_text(chat_id=chat_id, text="Calculating...")
-    
     for user in tele_account.data:
         username = user.get("gitlab_username", "")
         project_id = user.get("gitlab_project_id", "")
