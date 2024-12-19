@@ -292,45 +292,51 @@ async def my_task(chat_id: int, username: str):
         project = gitlab_handler.get_project(project_id)
 
         if project:
-            msg_todo = ""
-            todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
-            todo_issues = [
-                issue.__dict__['_attrs']
-                for issue in todo_issues
-                if not any(label in const_label.LABELS for label in issue.labels)
-            ]
-            if len(todo_issues):
-                msg_todo = get_format_issue("TODO", todo_issues)
-
-            msg_inprogress = ""
-            inprogress_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.IN_PROGRESS])
-            inprogress_issues = [issue.__dict__['_attrs'] for issue in inprogress_issues]
-            if len(inprogress_issues):
-                msg_inprogress = get_format_issue(const_label.IN_PROGRESS, inprogress_issues)
-
-            msg_devdone = ""
-            devdone_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.DEV_DONE])
-            devdone_issues = [issue.__dict__['_attrs'] for issue in devdone_issues]
-            if len(devdone_issues):
-                msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
-
-            msg_internal_testing = ""
-            internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
-            internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
-            if len(internal_testing_issues):
-                msg_internal_testing = get_format_issue(const_label.INTERNAL_TESTING, internal_testing_issues)
-
-            msg_reopen = ""
-            reopen_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.REOPEN])
-            reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
-            if len(reopen_issues):
-                msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
-
-            msg_merge_request = ""
             roles = config.get_role_by_gitlab_username(project_id=project_id, username=username)
-            opened_mr = project.mergerequests.list(reviewer_username=username, state=const_label.OPENED)
-            opened_mr =  [item.__dict__['_attrs'] for item in opened_mr]
+            msg_inprogress = ""
+            msg_todo = ""
+            msg_merge_request = ""
+            msg_devdone = ""
+            msg_reopen = ""
+
+            
+            if "dev_team" in roles:
+                todo_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[])
+                todo_issues = [
+                    issue.__dict__['_attrs']
+                    for issue in todo_issues
+                    if not any(label in const_label.LABELS for label in issue.labels)
+                ]
+                if len(todo_issues):
+                    msg_todo = get_format_issue("TODO", todo_issues)
+
+                inprogress_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.IN_PROGRESS])
+                inprogress_issues = [issue.__dict__['_attrs'] for issue in inprogress_issues]
+                if len(inprogress_issues):
+                    msg_inprogress = get_format_issue(const_label.IN_PROGRESS, inprogress_issues)
+
+                reopen_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.REOPEN])
+                reopen_issues = [issue.__dict__['_attrs'] for issue in reopen_issues]
+                if len(reopen_issues):
+                    msg_reopen = get_format_issue(const_label.REOPEN, reopen_issues)
+
+
+            if ("tester_team" in roles) and ("tester_lead" in roles):
+                devdone_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.DEV_DONE])
+                devdone_issues = [issue.__dict__['_attrs'] for issue in devdone_issues]
+                if len(devdone_issues):
+                    msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
+
+                msg_internal_testing = ""
+                internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
+                internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
+                if len(internal_testing_issues):
+                    msg_internal_testing = get_format_issue(const_label.INTERNAL_TESTING, internal_testing_issues)
+
+
             if "dev_lead" in roles:
+                opened_mr = project.mergerequests.list(reviewer_username=username, state=const_label.OPENED)
+                opened_mr =  [item.__dict__['_attrs'] for item in opened_mr]
                 msg_merge_request = get_format_mr(project_id=project_id, merge_requests=opened_mr)
 
 
