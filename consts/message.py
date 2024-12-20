@@ -21,7 +21,7 @@ HELP_MESSAGE = """
    `/mytask`
    _See all tasks assigned to your GitLab username._
 
-❕ *Surprice me*
+❕ *Surprise me*
    `/surpriseme`
    _I will send you random memes that can boost your mood._
 
