@@ -83,7 +83,7 @@ async def updater(data: dict):
             return await tenor(
                 chat_id=chat_id
             )
-        elif re.match(meme_pattern, message):
+        elif re.match(meme_pattern, message, re.IGNORECASE):
             return await tenor(
                 chat_id=chat_id,
                 q=message
