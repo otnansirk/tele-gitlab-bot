@@ -298,6 +298,7 @@ async def my_task(chat_id: int, username: str):
             msg_merge_request = ""
             msg_devdone = ""
             msg_reopen = ""
+            msg_internal_testing = ""
 
             
             if "dev_team" in roles:
@@ -327,7 +328,6 @@ async def my_task(chat_id: int, username: str):
                 if len(devdone_issues):
                     msg_devdone = get_format_issue(const_label.DEV_DONE, devdone_issues)
 
-                msg_internal_testing = ""
                 internal_testing_issues = project.issues.list(assignee_username=username, state=const_label.OPENED, labels=[const_label.INTERNAL_TESTING])
                 internal_testing_issues = [issue.__dict__['_attrs'] for issue in internal_testing_issues]
                 if len(internal_testing_issues):
