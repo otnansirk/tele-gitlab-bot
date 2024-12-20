@@ -20,4 +20,12 @@ HELP_MESSAGE = """
 ❕ *View My Tasks*
    `/mytask`
    _See all tasks assigned to your GitLab username._
+
+❕ *Surprice me*
+   `/surpriseme`
+   _I will send you random memes that can boost your mood._
+
+❕ *Meme for me*
+   `meme SAY_WHAT_YOU_WANT`
+   _I will send you memes like you said._
 """

@@ -1,6 +1,7 @@
 import os 
 import re
 import json
+import requests
 
 import gitlab
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
@@ -51,6 +52,8 @@ async def updater(data: dict):
         join_pattern = r'^/join .+$'
         task_detail_pattern = r'^/taskd .+$'
         my_task_pattern = '/mytask'
+        surprise_me_pattern = '/surpriseme'
+        meme_pattern = r'^meme .+$'
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
@@ -75,6 +78,15 @@ async def updater(data: dict):
             return await my_task(
                 chat_id=chat_id,
                 username=username
+            )
+        elif surprise_me_pattern == message:
+            return await tenor(
+                chat_id=chat_id
+            )
+        elif re.match(meme_pattern, message):
+            return await tenor(
+                chat_id=chat_id,
+                q=message
             )
         else:
             await send_text(chat_id, "Sorry, I don't know.")
@@ -390,3 +402,16 @@ def get_format_mr(project_id, merge_requests):
 
     msg_mr = "\n".join(msg_mr)+"\n"
     return msg_mr
+
+
+async def tenor(chat_id, q= "Sarcastic%20Meme"):
+    api_key = os.getenv("TENOR_API")
+    base_url = os.getenv("TENOR_URL")
+    try:
+        api_url = f"{base_url}/search?q={q}&key={api_key}&limit=1&locale=id_ID&random=true"
+        memes   = requests.get(api_url).json()
+        data    = memes.get("results", [])[0].get("media_formats", {}).get("gif")
+
+        await bot().send_document(chat_id=chat_id, document=data.get("url"))
+    except Exception:
+        await send_text(chat_id=chat_id, text="Kenapa kamu melotot ?")
