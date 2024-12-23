@@ -57,37 +57,37 @@ async def updater(data: dict):
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
-        # elif message == "/help":
-        #     return await send_text(
-        #         chat_id=chat_id,
-        #         text=const_message.HELP_MESSAGE
-        #     )
-        # elif re.match(join_pattern, message):
-        #     await join_bot(
-        #         chat_id=chat_id,
-        #         username=username,
-        #         message=message
-        #     )
+        elif message == "/help":
+            return await send_text(
+                chat_id=chat_id,
+                text=const_message.HELP_MESSAGE
+            )
+        elif re.match(join_pattern, message):
+            await join_bot(
+                chat_id=chat_id,
+                username=username,
+                message=message
+            )
         elif re.match(task_detail_pattern, message):
             return await task_detail(
                 chat_id=chat_id,
                 username=username,
                 message=message
             )
-        # elif my_task_pattern == message:
-        #     return await my_task(
-        #         chat_id=chat_id,
-        #         username=username
-        #     )
-        # elif surprise_me_pattern == message:
-        #     return await tenor(
-        #         chat_id=chat_id
-        #     )
-        # elif re.match(meme_pattern, message, re.IGNORECASE):
-        #     return await tenor(
-        #         chat_id=chat_id,
-        #         q=message
-        #     )
+        elif my_task_pattern == message:
+            return await my_task(
+                chat_id=chat_id,
+                username=username
+            )
+        elif surprise_me_pattern == message:
+            return await tenor(
+                chat_id=chat_id
+            )
+        elif re.match(meme_pattern, message, re.IGNORECASE):
+            return await tenor(
+                chat_id=chat_id,
+                q=message
+            )
         else:
             await send_text(chat_id, "Sorry, I don't know.")
 
