@@ -25,6 +25,11 @@ HELP_MESSAGE = """
    `/surpriseme`
    _I will send you random memes that can boost your mood._
 
+❕ *Generate daily meeting*
+   `daily meet TELEGRAM_USER_NAME`
+   _Will send daily meeting invitation url._
+   Example : `daily meet @teleuser1 @teleuser2`
+
 ❕ *Meme for me*
    `meme SAY_WHAT_YOU_WANT`
    _I will send you memes like you said._
