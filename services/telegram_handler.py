@@ -10,6 +10,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from core.db.database import Database
 from services import gitlab_handler
+from services import meet_hanlder
 from telegram import Update, Bot
 from services import helper
 from configs import config
@@ -54,6 +55,7 @@ async def updater(data: dict):
         my_task_pattern = '/mytask'
         surprise_me_pattern = '/surpriseme'
         meme_pattern = r'^meme .+$'
+        daily_meet_pattern = r'^daily meet .+$'
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
@@ -87,6 +89,12 @@ async def updater(data: dict):
             return await tenor(
                 chat_id=chat_id,
                 q=message
+            )
+        elif re.match(daily_meet_pattern, message, re.IGNORECASE):
+            return await meet_hanlder.generate(
+                chat_id=chat_id,
+                title="Daily Meeting",
+                message=message
             )
         else:
             await send_text(chat_id, "Sorry, I don't know.")
