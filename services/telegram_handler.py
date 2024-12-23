@@ -142,8 +142,7 @@ async def task_detail(chat_id: int, username: str, message: str):
 
         for user in tele_account.data:
             username = user.get("gitlab_username", "")
-            # project_id = user.get("gitlab_project_id", "")
-            project_id = "58"
+            project_id = user.get("gitlab_project_id", "")
             issue_id = message.replace("/taskd ", "").split(":")[0]
             
             try:
