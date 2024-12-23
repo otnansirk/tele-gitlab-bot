@@ -138,7 +138,7 @@ async def task_detail(chat_id: int, username: str, message: str):
             await send_text(chat_id=chat_id, text="You are not member")
             return {"NO"}
         
-        # await send_text(chat_id=chat_id, text="Calculating...")
+        await send_text(chat_id=chat_id, text="Calculating...")
 
         for user in tele_account.data:
             username = user.get("gitlab_username", "")
