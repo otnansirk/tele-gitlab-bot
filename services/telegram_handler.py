@@ -57,37 +57,37 @@ async def updater(data: dict):
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
-        elif message == "/help":
-            return await send_text(
-                chat_id=chat_id,
-                text=const_message.HELP_MESSAGE
-            )
-        elif re.match(join_pattern, message):
-            await join_bot(
-                chat_id=chat_id,
-                username=username,
-                message=message
-            )
+        # elif message == "/help":
+        #     return await send_text(
+        #         chat_id=chat_id,
+        #         text=const_message.HELP_MESSAGE
+        #     )
+        # elif re.match(join_pattern, message):
+        #     await join_bot(
+        #         chat_id=chat_id,
+        #         username=username,
+        #         message=message
+        #     )
         elif re.match(task_detail_pattern, message):
             return await task_detail(
                 chat_id=chat_id,
                 username=username,
                 message=message
             )
-        elif my_task_pattern == message:
-            return await my_task(
-                chat_id=chat_id,
-                username=username
-            )
-        elif surprise_me_pattern == message:
-            return await tenor(
-                chat_id=chat_id
-            )
-        elif re.match(meme_pattern, message, re.IGNORECASE):
-            return await tenor(
-                chat_id=chat_id,
-                q=message
-            )
+        # elif my_task_pattern == message:
+        #     return await my_task(
+        #         chat_id=chat_id,
+        #         username=username
+        #     )
+        # elif surprise_me_pattern == message:
+        #     return await tenor(
+        #         chat_id=chat_id
+        #     )
+        # elif re.match(meme_pattern, message, re.IGNORECASE):
+        #     return await tenor(
+        #         chat_id=chat_id,
+        #         q=message
+        #     )
         else:
             await send_text(chat_id, "Sorry, I don't know.")
 
@@ -138,17 +138,19 @@ async def task_detail(chat_id: int, username: str, message: str):
             await send_text(chat_id=chat_id, text="You are not member")
             return {"NO"}
         
-        await send_text(chat_id=chat_id, text="Calculating...")
+        # await send_text(chat_id=chat_id, text="Calculating...")
 
         for user in tele_account.data:
             username = user.get("gitlab_username", "")
-            project_id = user.get("gitlab_project_id", "")
+            # project_id = user.get("gitlab_project_id", "")
+            project_id = "58"
             issue_id = message.replace("/taskd ", "").split(":")[0]
-
+            
             try:
                 issue        = gitlab_handler.get_issue(project_id=project_id, id=issue_id)
                 issue_title  = issue.title
                 issue_id     = issue.iid
+                issue_weight = issue.weight if issue.weight else 0
                 issue_dict = json.loads(issue.to_json())
 
                 closed_by = issue_dict["closed_by"]
@@ -197,15 +199,17 @@ async def task_detail(chat_id: int, username: str, message: str):
                     and item.__dict__['_attrs']["user"]["username"] in dev_teams
                 ]
                 internal_testing_events = [
-                    item.__dict__['_attrs'] for item in events 
-                    if item.__dict__['_attrs']["action"] == "add" 
-                    and item.__dict__['_attrs']["label"]["name"] == const_label.INTERNAL_TESTING
-                    and item.__dict__['_attrs']["user"]["username"] in tester_teams
+                    item.__dict__.get("_attrs") for item in events 
+                    if item.__dict__.get("_attrs", {}).get("action", "") == "add"
+                    and item.__dict__.get("_attrs", {}).get("label", {}).get("name", "") == const_label.INTERNAL_TESTING
+                    and item.__dict__.get("_attrs", {}).get("user", {})
+                    and item.__dict__.get('_attrs', {}).get("user", {}).get("username", "") in tester_teams
                 ]
                 dev_done_events = [
                     item.__dict__['_attrs'] for item in events 
                     if item.__dict__['_attrs']["action"] == "add" 
                     and item.__dict__['_attrs']["label"]["name"] == const_label.DEV_DONE
+                    and item.__dict__.get("_attrs", {}).get("user", {})
                     and item.__dict__['_attrs']["user"]["username"] in dev_teams
                 ]
 
@@ -234,6 +238,24 @@ async def task_detail(chat_id: int, username: str, message: str):
 
                 total_reopen = len(reopen_events)
 
+                work_suration = ""
+                hours_given = ""
+                reward = ""
+                if len(ordered_inprogress_events) and len(ordered_dev_done_events):
+                    work_duration_in_second = helper.calculate_working_hours(ordered_inprogress_events[0].get("created_at", ""), ordered_dev_done_events[0].get("created_at", ""))
+                    hours_given   = issue_weight * 4
+                    seconds_given = hours_given * 3600
+
+                    work_suration = helper.second_2_time(work_duration_in_second)
+
+                    if work_duration_in_second < seconds_given:
+                        reward = "Amazing Job 🤩"
+                    elif work_duration_in_second > seconds_given:
+                        reward = "Better Next Time 😡"
+                    else:
+                        reward = "Good Job 😊"
+
+
                 project = gitlab_handler.get_project(project_id=project_id)
                 msg = helper.get_taskd_message(
                     project=project,
@@ -247,6 +269,9 @@ async def task_detail(chat_id: int, username: str, message: str):
                     msg_last_update_at=last_update_at,
                     msg_closed=close_message,
                     msg_total_reopen=total_reopen,
+                    msg_work_duration=work_suration,
+                    msg_weight=hours_given,
+                    reward=reward,
                     task_title=issue_title
                 )
                 await send_text(chat_id=chat_id, text=msg)

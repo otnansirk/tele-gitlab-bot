@@ -1,5 +1,8 @@
 import json
 from core.db.database import Database
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 
 def get_telegram_chat(project_id: str, gitlab_username: str):
     try:
@@ -79,6 +82,9 @@ def get_taskd_message(
     msg_last_update_at: str,
     msg_closed: str,
     msg_total_reopen: str,
+    msg_work_duration: str,
+    msg_weight: str,
+    reward: str,
     task_title: str
 ):
     labels = ", ".join(issue.labels)
@@ -109,6 +115,12 @@ Assign to :
 
 *Closed* by {msg_closed}
 
+Weight
+*{issue.weight} - {msg_weight}h*
+
+Time spent
+*{msg_work_duration}* - {reward}
+
 Total Reopen
 *{msg_total_reopen}*
 
@@ -125,3 +137,50 @@ The following are the details of the assignments that have been handed over to y
 
 {reopen}{todo}{inprogress}{devdone}{internal_testing}{merge_request}
     """
+
+
+def is_working_day(date):
+    return date.weekday() < 5  # Senin (0) sampai Jumat (4)
+
+def calculate_working_hours(start_date, end_date, work_start_hour=9, work_end_hour=17, break_start_hour=12, break_end_hour=13):
+    
+    start_date = datetime.fromisoformat(start_date).astimezone(ZoneInfo("UTC"))
+    end_date = datetime.fromisoformat(end_date).astimezone(ZoneInfo("UTC"))
+
+    total_working_seconds = 0
+    current_date = start_date
+    while current_date < end_date:
+        if is_working_day(current_date):
+            work_start  = datetime(current_date.year, current_date.month, current_date.day, work_start_hour, 0, 0, tzinfo=ZoneInfo("UTC"))
+            work_end    = datetime(current_date.year, current_date.month, current_date.day, work_end_hour, 0, 0, tzinfo=ZoneInfo("UTC"))
+            break_start = datetime(current_date.year, current_date.month, current_date.day, break_start_hour, 0, 0, tzinfo=ZoneInfo("UTC"))
+            break_end   = datetime(current_date.year, current_date.month, current_date.day, break_end_hour, 0, 0, tzinfo=ZoneInfo("UTC"))
+
+            if end_date < work_start:
+                break 
+            elif end_date <= work_end:
+                if end_date > break_start and end_date < break_end:
+                    total_working_seconds += (end_date - work_start).total_seconds() - 3600  # Mengurangi 1 jam untuk waktu istirahat
+                else:
+                    total_working_seconds += (end_date - work_start).total_seconds()
+                break  
+            else:
+                if break_end > work_start and break_end < work_end:
+                    total_working_seconds += (break_start - work_start).total_seconds() + (work_end - break_end).total_seconds()
+                else:
+                    total_working_seconds += (work_end - work_start).total_seconds()
+        
+        current_date += timedelta(days=1)
+
+    return total_working_seconds
+
+
+def second_2_time(seconds):
+    seconds = seconds % (24 * 3600)
+    hour    = seconds // 3600
+    
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+     
+    return "%d:%02d:%02d" % (hour, minutes, seconds)
