@@ -56,7 +56,7 @@ async def updater(data: dict):
         surprise_me_pattern = '/surpriseme'
         meme_pattern = r'^meme .+$'
         daily_meet_pattern = r'^daily meet .+$'
-        teams_pattern = r'/ourteams'
+        teams_pattern = r'/ourteam'
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)

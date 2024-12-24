@@ -35,5 +35,5 @@ async def my_teams(chat_id: str, username: str):
             gitlab_username = user.get("gitlab_username", "")
             tele_user_teams += f"{index}. @{username} - {gitlab_username} \n"
 
-        text = f"*- Yours Teams -*\n{tele_user_teams}"
+        text = f"*- Your Team -*\n{tele_user_teams}"
         await telegram_handler.send_text(chat_id=chat_id, text=text)
