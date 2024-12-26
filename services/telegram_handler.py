@@ -54,9 +54,9 @@ async def updater(data: dict):
         task_detail_pattern = r'^/taskd .+$'
         my_task_pattern = '/mytask'
         surprise_me_pattern = '/surpriseme'
-        meme_pattern = r'^meme .+$'
-        daily_meet_pattern = r'^daily meet .+$'
+        meet_pattern = r'^/meet .+$'
         teams_pattern = r'/ourteam'
+        meme_pattern = r'^meme .+$'
 
         if message == "/start":
             await bot().send_message(chat_id=chat_id, text=const_message.WELCOME_MESSAGE, reply_markup=_inline_keyboard_on_start(), parse_mode=ParseMode.MARKDOWN)
@@ -91,12 +91,12 @@ async def updater(data: dict):
                 chat_id=chat_id,
                 q=message
             )
-        elif re.match(daily_meet_pattern, message, re.IGNORECASE):
+        elif re.match(meet_pattern, message, re.IGNORECASE):
             return await meet_hanlder.generate(
                 chat_id=chat_id,
-                title="Daily Meeting",
+                title="Meeting",
                 message=message,
-                meeting_name="daily-meeting"
+                meeting_name="dsimeeting"
             )
         elif teams_pattern == message:
             return await meet_hanlder.my_teams(

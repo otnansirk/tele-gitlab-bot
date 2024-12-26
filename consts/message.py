@@ -30,7 +30,7 @@ HELP_MESSAGE = """
    _Will show all team on project._
 
 ❕ *Generate daily meeting*
-   `daily meet TELEGRAM_USER_NAME`
+   `/meet TELEGRAM_USER_NAME`
    _Will send daily meeting invitation url._
    Example : `daily meet @teleuser1 @teleuser2`
 
