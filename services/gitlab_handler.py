@@ -54,11 +54,13 @@ async def issue_handler(**params):
     if not any(item in config.get_labels(project_id=project_id) for item in issue.labels) and  issue.state == "opened":
         await _notify_to_dev(changes, issue, action_by_user)
 
+    if "description" in changes: # update description
+        await _notify_change_description(changes=changes, issue=issue, action_by_user=action_by_user)
+    
     if consts.label.IN_PROGRESS in issue.labels:
+        await _notify_to_dev(changes=changes, issue=issue, action_by_user=action_by_user)
         if "labels" in changes: # update progress label
             await _notify_to_pm(issue=issue, label=consts.label.IN_PROGRESS, action_by_user=action_by_user)
-        if "description" in changes: # update description
-            await _notify_to_dev(changes=changes, issue=issue, action_by_user=action_by_user)
 
     if consts.label.DEV_DONE in issue.labels:
         notify_to = config.get_gitlab_username_by_label(project_id=project_id, labels=issue.labels)
@@ -86,22 +88,43 @@ async def issue_handler(**params):
         await _notify_to_pm(issue=issue, label=consts.label.CLOSED, action_by_user=action_by_user)
 
 
-async def _notify_to_dev(changes, issue, action_by_user):
+async def _notify_change_description(changes, issue, action_by_user):
+    project_id = str(issue.project_id)
     title      = issue.title
     issue_url  = issue.web_url
     issue_id   = issue.iid
+    issue_assignees = issue.assignees
+    author_username = action_by_user.get("username", "")
+
+    if "description" in changes:
+        for assignee in issue_assignees:
+            username = assignee.get("username")
+            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+            if chat  and author_username != username:
+                text = helper.get_update_desc_task_message(
+                    to=username,
+                    issue_id=issue_id,
+                    issue_url=issue_url,
+                    title=title
+                )
+                await telegram_handler.send_text(chat.get("id"), text=text)
+
+async def _notify_to_dev(changes, issue, action_by_user):
+    title       = issue.title
+    issue_url   = issue.web_url
+    issue_id    = issue.iid
     author_name = action_by_user.get("name", "")
     author_username = action_by_user.get("username", "")
     project_id = str(issue.project_id)
     
     notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
+    text = ""
 
-    username = changes.get("assignees", {}).get("current", []).pop().get("username", "")
-    if username in notify_to:
-        chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
-        if chat :
-            text = ""
-            if "assignees" in changes:
+    if "assignees" in changes:
+        for assignee in changes.get("assignees", {}).get("current", []):
+            username = assignee.get("username")
+            chat = helper.get_telegram_chat(project_id=project_id, gitlab_username=username)
+            if chat and assignee.get("username") in notify_to:    
                 if author_username == username:                    
                     text = helper.get_self_assignee_task_message(
                         to=username,
@@ -118,16 +141,8 @@ async def _notify_to_dev(changes, issue, action_by_user):
                         title=title
                     )
 
-            if "description" in changes and author_username != username:
-                    text = helper.get_update_desc_task_message(
-                        to=username,
-                        issue_id=issue_id,
-                        issue_url=issue_url,
-                        title=title
-                    )
-
-            if text:
                 await telegram_handler.send_text(chat.get("id"), text=text)
+
 
 async def _notify_to_pm(issue, label, action_by_user):
     title      = issue.title
