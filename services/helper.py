@@ -2,6 +2,7 @@ import json
 from core.db.database import Database
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from fastapi.responses import JSONResponse
 
 
 def get_telegram_chat(project_id: str, gitlab_username: str):
@@ -184,3 +185,28 @@ def second_2_time(seconds):
     seconds %= 60
      
     return "%d:%02d:%02d" % (hour, minutes, seconds)
+
+
+def res_success(data= {}):
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "data": data,
+            "meta": {
+                "code": "success",
+                "message": "Success"
+            }
+        }
+    )
+
+def res_error(data: dict = {}):
+    return JSONResponse(
+        status_code=400, 
+        content={
+            "data": data,
+            "meta": {
+                "code": "error",
+                "message": "Error"
+            }
+        }
+    )
