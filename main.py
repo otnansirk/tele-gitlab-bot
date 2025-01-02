@@ -3,6 +3,7 @@ from services import gitlab_handler
 from fastapi.responses import JSONResponse
 from services import telegram_handler
 from services import meet_hanlder
+from services import calendar_handler
 from services import helper
 from dotenv import load_dotenv
 
@@ -23,6 +24,14 @@ async def dev_daily_meeting(request: Request):
         mentioned_member = request.query_params.get("mention")
         await meet_hanlder.generate(meeting_name="mrp-dev-daily-meeting", title="MRP DEV Daily Meeting", message=mentioned_member)
         return helper.res_success()
+    except Exception as e:
+        print(e, "ERROR /dev-daily-meeting")
+        return helper.res_error()
+
+@callback_route.get("/holiday")
+async def holiday(request: Request):
+    try:
+        return calendar_handler.get_holiday()
     except Exception as e:
         print(e, "ERROR /dev-daily-meeting")
         return helper.res_error()
