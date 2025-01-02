@@ -2,7 +2,7 @@ from services import telegram_handler
 from core.db.database import Database
 
 async def generate(chat_id: str = "", title: str = "Meeting", message: str = "", meeting_name: str = "Urgent-Meeting"):
-    base_url = "https://meet.jit.si/"
+    base_url = "https://metal.callink.id/"
     meet_url = base_url + meeting_name
 
     text = f"""
