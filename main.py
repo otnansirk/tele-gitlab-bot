@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 
 app = FastAPI()
-callback_route = APIRouter(prefix="/api")
+api_route = APIRouter(prefix="/api")
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ async def root():
 async def set_webhook():
     return await telegram_handler.set_webhook()
 
-@callback_route.get("/dev-daily-meeting")
+@api_route.get("/dev-daily-meeting")
 async def dev_daily_meeting(request: Request):
     try:
         mentioned_member = request.query_params.get("mention")
@@ -31,7 +31,7 @@ async def dev_daily_meeting(request: Request):
         print(e, "ERROR /dev-daily-meeting")
         return helper.res_error()
 
-@callback_route.get("/montly-holiday")
+@api_route.get("/montly-holiday")
 async def monthly_holiday():
     try:
         return await telegram_handler.monthly_holiday()
@@ -40,7 +40,7 @@ async def monthly_holiday():
         print(e, "ERROR /holiday")
         return helper.res_error()
 
-@callback_route.post("/callbacks/gitlab")
+@api_route.post("/callbacks/gitlab")
 async def handle_webhook_gitlab(request: Request):
     try:
         data = await request.json()
@@ -51,7 +51,7 @@ async def handle_webhook_gitlab(request: Request):
         print(e, "ERROR /callbacks/gitlab")
         return helper.res_error()
 
-@callback_route.post("/callbacks/telegram")
+@api_route.post("/callbacks/telegram")
 async def handle_webhook_telegram(request: Request):
     try:
         data = await request.json()
@@ -63,4 +63,4 @@ async def handle_webhook_telegram(request: Request):
         return helper.res_error()
 
 
-app.include_router(callback_route)
+app.include_router(api_route)
