@@ -8,6 +8,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updat
 from consts import label as const_label, message as const_message
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
+from services import calendar_handler
 from core.db.database import Database
 from services import gitlab_handler
 from services import meet_hanlder
@@ -56,6 +57,7 @@ async def updater(data: dict):
         surprise_me_pattern = '/surpriseme'
         meet_pattern = r'^/meet .+$'
         teams_pattern = r'/ourteam'
+        holiday_pattern = r'/holiday'
         meme_pattern = r'^meme .+$'
 
         if message == "/start":
@@ -102,6 +104,10 @@ async def updater(data: dict):
             return await meet_hanlder.my_teams(
                 chat_id=chat_id,
                 username=username
+            )
+        elif holiday_pattern == message:
+            return await get_holiday_in_30_day_from_today(
+                chat_id=chat_id
             )
         else:
             await send_text(chat_id, "Sorry, I don't know.")
@@ -454,3 +460,42 @@ async def tenor(chat_id, q= "Sarcastic%20Meme"):
         await bot().send_document(chat_id=chat_id, document=data.get("url"))
     except Exception:
         await send_text(chat_id=chat_id, text="Kenapa kamu melotot ?")
+
+# Broadcast to all members
+async def monthly_holiday():
+    try:
+        holidays = []
+        for index, holi in enumerate(calendar_handler.monthly_holiday(), start=1):
+            start_date = holi.get("date").get("start")
+            title      = holi.get("title")
+            holidays.append(f"{index}. {start_date} - {title}")
+
+        text = helper.get_monthly_holiday_message(holiday="\n".join(holidays))
+
+        db = Database()
+        tele_account = db.fetch(table_name="telegram_account").select("*").execute()
+        if len(tele_account.data):
+            for user in tele_account.data:
+                chat_id = user.get("chat_id")
+                await send_text(chat_id=chat_id, text=text)
+        return "OK"
+    except Exception as e:
+        print("monthly_holiday: ", e)
+
+async def get_holiday_in_30_day_from_today(chat_id: str):
+    try:
+        holidays = []
+        for index, holi in enumerate(calendar_handler.holiday_in_30_days(), start=1):
+            start_date = holi.get("date").get("start")
+            title      = holi.get("title")
+            holidays.append(f"{index}. {start_date} - {title}")
+
+        text = helper.get_holiday_message(holiday="\n".join(holidays))
+        if holidays:
+            await send_text(chat_id=chat_id, text=text)
+        else: 
+            await send_text(chat_id=chat_id, text="Yah, maaf ya tidak ada hari libur.")
+
+        return "OK"
+    except Exception as e:
+        print("get_holiday_in_30_day_from_today: ", e)

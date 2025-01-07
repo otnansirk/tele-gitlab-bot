@@ -28,12 +28,13 @@ async def dev_daily_meeting(request: Request):
         print(e, "ERROR /dev-daily-meeting")
         return helper.res_error()
 
-@callback_route.get("/holiday")
-async def holiday(request: Request):
+@callback_route.get("/montly-holiday")
+async def monthly_holiday():
     try:
-        return calendar_handler.get_holiday()
+        return await telegram_handler.monthly_holiday()
+        return helper.res_success()
     except Exception as e:
-        print(e, "ERROR /dev-daily-meeting")
+        print(e, "ERROR /holiday")
         return helper.res_error()
 
 @callback_route.post("/callbacks/gitlab")
