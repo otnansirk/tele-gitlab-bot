@@ -26,6 +26,7 @@ def bot():
 async def set_webhook():
     await bot().set_webhook(os.getenv("TELEGRAM_BOT_WEBHOOK"))
     print(f"Webhook set to {os.getenv('TELEGRAM_BOT_WEBHOOK')}")
+    return f"Webhook set to {os.getenv('TELEGRAM_BOT_WEBHOOK')}"
 
 def _inline_keyboard_on_start():
     keyboard = [

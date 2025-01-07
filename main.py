@@ -15,8 +15,11 @@ load_dotenv()
 
 @app.get("/")
 async def root():
-    await telegram_handler.set_webhook()
     return "Service running"
+
+@app.get("/set-webhook")
+async def set_webhook():
+    return await telegram_handler.set_webhook()
 
 @callback_route.get("/dev-daily-meeting")
 async def dev_daily_meeting(request: Request):
