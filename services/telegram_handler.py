@@ -486,10 +486,10 @@ async def monthly_holiday():
 async def get_holiday_in_30_day_from_today(chat_id: str):
     try:
         holidays = []
-        for index, holi in enumerate(calendar_handler.holiday_in_30_days(), start=1):
+        for index, holi in enumerate(calendar_handler.holiday_in_30_days().reverse(), start=1):
             start_date = holi.get("date").get("start")
             title      = holi.get("title")
-            holidays.append(f"{index}. {start_date} - {title}")
+            holidays.append(f"*{index}*. {start_date} - {title}")
 
         text = helper.get_holiday_message(holiday="\n".join(holidays))
         if holidays:

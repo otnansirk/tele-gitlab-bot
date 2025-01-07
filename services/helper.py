@@ -162,9 +162,6 @@ def get_holiday_message(holiday):
 
 _Confirmasikan ke Lead ya apakah kantor kita juga mengikuti libur ini_
 
-Semoga kalian bisa memanfaatkannya untuk istirahat atau melakukan hal-hal yang kalian sukai. 
-
-Kalau ada rencana cuti, jangan lupa diskusikan dulu, ya, supaya semuanya tetap lancar!
     """
 
 def is_working_day(date):
