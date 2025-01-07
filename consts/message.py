@@ -35,6 +35,10 @@ HELP_MESSAGE = """
    Example 1: `/meet generate`
    Example 2: `/meet @teleuser1 @teleuser2`
 
+❕ *Show holidays*
+   `/holiday`
+   _Will show holiday in last 30 days._
+
 ❕ *Meme for me*
    `meme SAY_WHAT_YOU_WANT`
    _I will send you memes like you said._

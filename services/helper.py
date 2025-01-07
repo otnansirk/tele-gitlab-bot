@@ -139,6 +139,33 @@ The following are the details of the assignments that have been handed over to y
 {reopen}{todo}{inprogress}{devdone}{internal_testing}{merge_request}
     """
 
+def get_monthly_holiday_message(holiday):
+    return f"""Hi team,
+Bulan ini ada hari libur, lho! 
+Kalau kalian mau, kalian bisa ambil cuti supaya liburnya lebih panjang dan lebih santai ✨.
+
+Berikut detail hari liburnya, ya:
+
+{holiday}
+
+_Confirmasikan ke Lead ya apakah kantor kita juga mengikuti libur ini_
+
+Semoga kalian bisa memanfaatkannya untuk istirahat atau melakukan hal-hal yang kalian sukai. 
+
+Kalau ada rencana cuti, jangan lupa diskusikan dulu, ya, supaya semuanya tetap lancar!
+    """
+
+def get_holiday_message(holiday):
+    return f"""Berikut detail hari libur untuk 30 hari kedepan, ya:
+
+{holiday}
+
+_Confirmasikan ke Lead ya apakah kantor kita juga mengikuti libur ini_
+
+Semoga kalian bisa memanfaatkannya untuk istirahat atau melakukan hal-hal yang kalian sukai. 
+
+Kalau ada rencana cuti, jangan lupa diskusikan dulu, ya, supaya semuanya tetap lancar!
+    """
 
 def is_working_day(date):
     return date.weekday() < 5  # Senin (0) sampai Jumat (4)
