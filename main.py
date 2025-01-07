@@ -31,7 +31,7 @@ async def dev_daily_meeting(request: Request):
         print(e, "ERROR /dev-daily-meeting")
         return helper.res_error()
 
-@api_route.get("/montly-holiday")
+@api_route.get("/monthly-holiday")
 async def monthly_holiday():
     try:
         return await telegram_handler.monthly_holiday()
