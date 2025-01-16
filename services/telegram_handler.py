@@ -2,6 +2,7 @@ import os
 import re
 import json
 import requests
+import random
 
 import gitlab
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
@@ -86,7 +87,7 @@ async def updater(data: dict):
                 username=username
             )
         elif surprise_me_pattern == message:
-            return await tenor(
+            return await jomokmem(
                 chat_id=chat_id
             )
         elif re.match(meme_pattern, message, re.IGNORECASE):
@@ -459,6 +460,18 @@ async def tenor(chat_id, q= "Sarcastic%20Meme"):
         data    = memes.get("results", [])[0].get("media_formats", {}).get("gif")
 
         await bot().send_document(chat_id=chat_id, document=data.get("url"))
+    except Exception:
+        await send_text(chat_id=chat_id, text="Kenapa kamu melotot ?")
+
+async def jomokmem(chat_id):
+    base_url = os.getenv("JOMOK_URL")
+    tags = random.choice(["animated", "jomok"])
+    try:
+        api_url = f"{base_url}/sticker?tags={tags}"
+        memes   = requests.get(api_url).json()
+        mem_url = memes.get("data", []).get("url", {})
+
+        await bot().send_document(chat_id=chat_id, document=mem_url)
     except Exception:
         await send_text(chat_id=chat_id, text="Kenapa kamu melotot ?")
 
