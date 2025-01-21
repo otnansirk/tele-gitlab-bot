@@ -43,6 +43,30 @@ async def send_text(chat_id, text: str):
         parse_mode=ParseMode.MARKDOWN,
         text=text
     )
+async def external_webhook(request):
+    method       = request.method
+    full_url     = request.url
+    mention_to   = request.query_params.get("teleuser")
+    send_to      = mention_to.replace("@", "").split(",")
+    body_payload = json.dumps(await request.json(), sort_keys=True, indent=2)
+    headers      = json.dumps(dict(request.headers), sort_keys=True, indent=2)
+    params       = json.dumps(dict(request.query_params), sort_keys=True, indent=2)
+    
+    msg = helper.get_external_webhook_message(
+        method=method,
+        url=full_url,
+        params=params,
+        body=body_payload,
+        headers=headers
+    )
+
+    db = Database()
+    for username in send_to:
+        tele_account = db.fetch(table_name="telegram_account").select("*").eq("username", username).execute()
+        if len(tele_account.data):
+            for user in tele_account.data:
+                chat_id = user.get("chat_id", "")
+                await send_text(chat_id=chat_id, text=msg)
 
 async def updater(data: dict):
     if "callback_query" in data:

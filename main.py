@@ -21,6 +21,10 @@ async def root():
 async def set_webhook():
     return await telegram_handler.set_webhook()
 
+@app.api_route("/external-webhook", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+async def external_webhook(req: Request):
+    return await telegram_handler.external_webhook(req)
+
 @api_route.get("/dev-daily-meeting")
 async def dev_daily_meeting(request: Request):
     try:

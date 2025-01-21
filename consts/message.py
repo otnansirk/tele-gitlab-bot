@@ -42,4 +42,9 @@ HELP_MESSAGE = """
 ❕ *Meme for me*
    `meme SAY_WHAT_YOU_WANT`
    _I will send you memes like you said._
+
+❕ *External Webhook*
+   1. `https://socialist-amber-bangsa-digital-221484cb.koyeb.app/external-webhook?teleuser=@teleuser,@teleuser1`
+   2. `https://hanoman.digitalsekuriti.id/external-webhook?teleuser=@teleuser,@teleuser1`
+   _Use hanoman as the recipient of the webhook._
 """

@@ -200,6 +200,23 @@ def calculate_working_hours(start_date, end_date, work_start_hour=9, work_end_ho
     return total_working_seconds
 
 
+def get_external_webhook_message(method, url, params, body, headers):
+    return f"""
+*External Webhook*
+
+*URL*
+`[{method}] {url}`
+
+*PARAM*
+```{params}```
+
+*BODY*
+```{body}```
+
+*HEADER*
+```{headers}```
+"""
+
 def second_2_time(seconds):
     seconds = seconds % (24 * 3600)
     hour    = seconds // 3600
