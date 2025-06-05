@@ -82,7 +82,8 @@ async def external_webhook(request):
                 if len(body) >= 1:
                     for body_only in body:
                         text = body_only.replace("```", "'''")
-                        clean_text = f"```{text}```"
+                        clean_text = f"```  {text}```"
+                        print("BODY_1", clean_text)
                         await send_text(chat_id=chat_id, text=clean_text)
 
 
