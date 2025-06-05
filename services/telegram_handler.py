@@ -61,7 +61,7 @@ async def external_webhook(request):
     MAX_TELEGRAM_MSG_LENGTH = 1500
     body = []
     for i in range(0, len(body_payload), MAX_TELEGRAM_MSG_LENGTH):
-        body.body_payload[i:i+MAX_TELEGRAM_MSG_LENGTH]
+        body.append(body_payload[i:i+MAX_TELEGRAM_MSG_LENGTH])
 
 
     msg = helper.get_external_webhook_message(
