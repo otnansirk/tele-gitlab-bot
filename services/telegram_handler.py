@@ -48,15 +48,27 @@ async def external_webhook(request):
     full_url     = request.url
     mention_to   = request.query_params.get("teleuser")
     send_to      = mention_to.replace("@", "").split(",")
-    body_payload = json.dumps(await request.json(), sort_keys=True, indent=2)
     headers      = json.dumps(dict(request.headers), sort_keys=True, indent=2)
     params       = json.dumps(dict(request.query_params), sort_keys=True, indent=2)
     
+    try:
+        body_data = await request.json()
+        body_payload = json.dumps(body_data, sort_keys=True, indent=2)
+    except Exception:
+        body_raw = await request.body()
+        body_payload = body_raw.decode("utf-8", errors="replace")
+
+    MAX_TELEGRAM_MSG_LENGTH = 4000
+    body = []
+    for i in range(0, len(body_payload), MAX_TELEGRAM_MSG_LENGTH):
+        body.body_payload[i:i+MAX_TELEGRAM_MSG_LENGTH]
+
+
     msg = helper.get_external_webhook_message(
         method=method,
         url=full_url,
         params=params,
-        body=body_payload,
+        body=body.pop(0),
         headers=headers
     )
 
@@ -67,6 +79,10 @@ async def external_webhook(request):
             for user in tele_account.data:
                 chat_id = user.get("chat_id", "")
                 await send_text(chat_id=chat_id, text=msg)
+                if len(body) > 1:
+                    for body_only in body:
+                    await send_text(chat_id=chat_id, text=body_only)
+
 
 async def updater(data: dict):
     if "callback_query" in data:

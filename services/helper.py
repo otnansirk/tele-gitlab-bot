@@ -207,14 +207,14 @@ def get_external_webhook_message(method, url, params, body, headers):
 *URL*
 `[{method}] {url}`
 
+*HEADER*
+```{headers}```
+
 *PARAM*
 ```{params}```
 
 *BODY*
 ```{body}```
-
-*HEADER*
-```{headers}```
 """
 
 def second_2_time(seconds):
