@@ -58,7 +58,7 @@ async def external_webhook(request):
         body_raw = await request.body()
         body_payload = body_raw.decode("utf-8", errors="replace")
 
-    MAX_TELEGRAM_MSG_LENGTH = 4000
+    MAX_TELEGRAM_MSG_LENGTH = 1500
     body = []
     for i in range(0, len(body_payload), MAX_TELEGRAM_MSG_LENGTH):
         body.body_payload[i:i+MAX_TELEGRAM_MSG_LENGTH]
