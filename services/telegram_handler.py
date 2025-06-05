@@ -81,7 +81,7 @@ async def external_webhook(request):
                 await send_text(chat_id=chat_id, text=msg)
                 if len(body) > 1:
                     for body_only in body:
-                    await send_text(chat_id=chat_id, text=body_only)
+                        await send_text(chat_id=chat_id, text=body_only)
 
 
 async def updater(data: dict):
