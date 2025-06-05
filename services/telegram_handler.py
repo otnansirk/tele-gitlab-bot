@@ -79,10 +79,8 @@ async def external_webhook(request):
             for user in tele_account.data:
                 chat_id = user.get("chat_id", "")
                 await send_text(chat_id=chat_id, text=msg)
-                print("BODY_1", body)
-                if len(body) > 1:
+                if len(body) >= 1:
                     for body_only in body:
-                        print("BODY_ONLY", body_only)
                         await send_text(chat_id=chat_id, text=body_only)
 
 
