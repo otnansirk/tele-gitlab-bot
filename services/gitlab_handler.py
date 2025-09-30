@@ -70,8 +70,8 @@ async def issue_handler(**params):
         await internal_testing(issue, action_by_user)
     
     if consts.label.REOPEN in issue.labels and issue.state == "opened":
-        issue.state_event = 'reopen'
-        issue.save()
+        # issue.state_event = 'reopen'
+        # issue.save()
 
         notify_to = config.get_gitlab_username_by_role(project_id=project_id, role="dev_team")
         tester_teams = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
@@ -193,8 +193,8 @@ async def dev_done(project, notify_to, issue, changes, action_by_user):
                     )
                     await telegram_handler.send_text(chat.get("id"), text=text)
 
-        issue.assignee_ids = current_assignee_ids + tester_lead_gitlab_ids
-        issue.save()
+        # issue.assignee_ids = current_assignee_ids + tester_lead_gitlab_ids
+        # issue.save()
         await _notify_to_pm(issue=issue, label=consts.label.DEV_DONE, action_by_user=action_by_user)
 
 
@@ -231,9 +231,9 @@ async def dev_done(project, notify_to, issue, changes, action_by_user):
 async def internal_testing(issue, action_by_user):
     project_id = str(issue.project_id)
     author_tester_team = config.get_gitlab_username_by_role(project_id=project_id, role="tester_team")
-    if action_by_user.get("username") in author_tester_team:
-        issue.labels = [label for label in issue.labels if label != consts.label.REOPEN]
-        issue.save()
+    # if action_by_user.get("username") in author_tester_team:
+    #     issue.labels = [label for label in issue.labels if label != consts.label.REOPEN]
+    #     issue.save()
 
         await _notify_to_pm(issue=issue, label=consts.label.INTERNAL_TESTING, action_by_user=action_by_user)
 
@@ -275,8 +275,8 @@ async def closed(notify_to: list, issue, action_by_user):
     issue_id   = issue.iid
     author_name = action_by_user.get("name", "")
 
-    issue.labels = [label for label in issue.labels if label not in config.get_labels(project_id=project_id)]
-    issue.save()
+    # issue.labels = [label for label in issue.labels if label not in config.get_labels(project_id=project_id)]
+    # issue.save()
     
     mr_messages = []
     merge_requests = [mr for mr in issue.related_merge_requests() if mr.get("state", "") == "opened"]
